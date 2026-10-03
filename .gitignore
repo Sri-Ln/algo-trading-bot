@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+
+# Local data cache (rebuilt from the data source)
+data/cache/
+
+# Secrets
+.env
+.env.*
+!.env.example
