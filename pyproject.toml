@@ -5,6 +5,8 @@ description = "Rules-based ETF rotation bot: backtested, paper-traded via Alpaca
 authors = [
     { name = "Srikanth Lakshminarayan", email = "110121779+Sri-Ln@users.noreply.github.com" }
 ]
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.5.3",
