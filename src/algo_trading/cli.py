@@ -1,4 +1,4 @@
-"""Command-line entry point: ``algo-trading backtest``."""
+"""Command-line entry point: ``algo-trading backtest`` and ``algo-trading live``."""
 
 from __future__ import annotations
 
@@ -11,9 +11,13 @@ from pathlib import Path
 import pandas as pd
 
 from algo_trading import universe
+from algo_trading.alpaca import AlpacaBroker
 from algo_trading.backtest import BacktestConfig, BacktestResult, run_backtest
+from algo_trading.broker import Broker
+from algo_trading.live import LiveConfig, run_live
 from algo_trading.market_data import Bars, CachedMarketData, MarketData, YFinanceMarketData
 from algo_trading.metrics import Summary, summarize
+from algo_trading.store import LIVE_DIR, save_run
 
 # First download date: enough history before the backtest start to warm up the
 # 250-day RSI window. BTAL, the youngest fund, launched in September 2011.
@@ -64,13 +68,23 @@ def format_report(result: BacktestResult, holdout: pd.Timestamp = HOLDOUT_START)
     return "\n".join(lines)
 
 
-def main(argv: Sequence[str] | None = None, source: MarketData | None = None) -> int:
+def main(
+    argv: Sequence[str] | None = None,
+    source: MarketData | None = None,
+    broker: Broker | None = None,
+    live_dir: Path = LIVE_DIR,
+) -> int:
     parser = argparse.ArgumentParser(prog="algo-trading")
     commands = parser.add_subparsers(dest="command", required=True)
     bt = commands.add_parser("backtest", help="run the strategy on historical prices")
     bt.add_argument("--cost-bps", type=float, default=5.0, help="cost per dollar traded")
     bt.add_argument("--refresh", action="store_true", help="re-download prices")
+    live = commands.add_parser("live", help="run today's decision against the paper account")
+    live.add_argument("--dry-run", action="store_true", help="plan orders but do not send them")
     args = parser.parse_args(argv)
+
+    if args.command == "live":
+        return _live(source, broker, live_dir, dry_run=args.dry_run)
 
     if source is None:
         if args.refresh:
@@ -80,6 +94,22 @@ def main(argv: Sequence[str] | None = None, source: MarketData | None = None) ->
     result = run_backtest(bars, BacktestConfig(cost_bps=args.cost_bps, start=BACKTEST_START))
     print(format_report(result))
     return 0
+
+
+def _live(source: MarketData | None, broker: Broker | None, live_dir: Path, dry_run: bool) -> int:
+    # Live runs always download fresh prices; a cache could hold yesterday's data.
+    record = run_live(
+        source or YFinanceMarketData(),
+        broker or AlpacaBroker.from_env(),
+        dt.datetime.now(dt.UTC),
+        LiveConfig(dry_run=dry_run),
+    )
+    path = save_run(record, live_dir)
+    print(f"{record.trading_day}: {record.status}" + (f" ({record.error})" if record.error else ""))
+    for step in record.steps:
+        print(f"  {step.name:<14}{step.status:<9}{step.ms:>8.0f} ms  {step.detail}")
+    print(f"saved {path}")
+    return 1 if record.status == "failed" else 0
 
 
 if __name__ == "__main__":
