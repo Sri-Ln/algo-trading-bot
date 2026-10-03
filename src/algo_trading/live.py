@@ -106,7 +106,8 @@ def _run(
     with _step(record, "check_clock") as step:
         clock = broker.clock()
         step.detail = {"is_open": clock.is_open, "next_open": clock.next_open.isoformat()}
-    if not clock.is_open:
+    # A dry run sends nothing, so it may plan while the market is closed.
+    if not clock.is_open and not config.dry_run:
         step.status = record.status = "skipped"
         return
 

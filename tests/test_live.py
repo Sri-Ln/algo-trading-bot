@@ -63,6 +63,14 @@ def test_dry_run_plans_but_sends_nothing() -> None:
     assert broker.orders == {}
 
 
+def test_dry_run_still_plans_when_the_market_is_closed() -> None:
+    record = run_live(
+        FakeMarketData(BARS), make_broker(is_open=False), NOW, LiveConfig(dry_run=True)
+    )
+    assert record.status == "ok"
+    assert {o["symbol"] for o in record.orders} == {"TECL", "TQQQ"}
+
+
 def test_todays_partial_bar_is_ignored() -> None:
     today = pd.Timestamp(NOW.date())
     with_today = pd.concat([CLOSE, CLOSE.iloc[[-1]].set_axis([today]) * 2])
