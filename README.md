@@ -4,7 +4,10 @@
 
 A rules-based ETF rotation strategy, implemented as a tested Python package with a
 realistic backtester. Each day it reads two bond-market signals, picks one of three
-portfolios, and holds it until the signals change.
+portfolios, and holds it until the signals change. A scheduled job trades it on an Alpaca
+paper account every weekday, and a web console shows every decision, run and backtest.
+
+**Console:** [sri-ln.github.io/algo_trading](https://sri-ln.github.io/algo_trading/)
 
 > Paper trading only. Nothing here is investment advice.
 
@@ -100,6 +103,19 @@ matches a full re-run.
   day therefore match exactly.
 - **Swappable data.** Prices come through a `MarketData` port. The Yahoo Finance adapter
   is wrapped in a Parquet cache so backtests run offline.
+- **Live runs as reconciliation.** Every weekday at 09:35 New York time a GitHub Actions
+  job checks the broker's clock, decides on the latest completed day, compares the target
+  with the account's holdings, and sends whole-share orders for the difference. Client
+  order IDs make retries safe. Each run's steps, timings, orders and API calls are
+  committed as JSON under `data/live/`.
+- **A static API with a typed contract.** The console's API is defined in FastAPI with
+  pydantic response models. At build time every route is requested once and saved as a
+  JSON file at the same path, so GitHub Pages hosts it with no server. The React
+  console's TypeScript types are generated from the same OpenAPI schema, and CI fails if
+  they drift.
+- **The console is tested in a browser.** CI renders every tab against freshly exported
+  data, then opens the built site in headless Chromium at desktop and phone sizes and
+  fails on any page error.
 
 ## Getting started
 
@@ -111,6 +127,14 @@ uv run algo-trading backtest            # downloads prices on first run, then us
 uv run algo-trading sweep               # parameter sweep and cost curve, saved as JSON
 uv run pytest -m "not network"          # tests
 uv run ruff check && uv run mypy        # lint and strict type checks
+uv run algo-trading live --dry-run      # plan today's orders (needs Alpaca paper keys)
+```
+
+The console, against locally exported data:
+
+```bash
+uv run algo-trading export --out web/public   # write the API as JSON files
+cd web && npm ci && npm run dev               # http://localhost:5173
 ```
 
 ## Project layout
@@ -129,8 +153,13 @@ src/algo_trading/
   alpaca.py        Alpaca paper-trading adapter
   live.py          daily live run with a step-by-step trace
   store.py         JSON files for live runs and backtest results
-  cli.py           `algo-trading backtest`, `sweep` and `live`
+  console.py       everything the console shows, computed once
+  api.py           FastAPI routes and response models
+  export.py        writes every route as a static JSON file
+  cli.py           `algo-trading backtest`, `sweep`, `live`, `export`, `openapi`
 tests/             unit tests for each module, plus an end-to-end backtest
+web/               React + TypeScript console (Vite), with unit, render and browser tests
+data/live/         one JSON record per live run, committed by the daily job
 ```
 
 ## Roadmap
@@ -138,5 +167,5 @@ tests/             unit tests for each module, plus an end-to-end backtest
 - [x] Strategy, backtester, metrics, CI
 - [x] Parameter sweep and cost sensitivity
 - [x] Live paper trading on Alpaca, scheduled daily with GitHub Actions
-- [ ] Run traces, positions and orders published as a static JSON API
-- [ ] Web console (React on GitHub Pages) to explore decisions, backtests and the live account
+- [x] Run traces, positions and orders published as a static JSON API
+- [x] Web console (React on GitHub Pages) to explore decisions, backtests and the live account
