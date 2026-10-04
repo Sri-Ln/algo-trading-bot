@@ -10,7 +10,7 @@ export function Brand() {
     <span
       className="brand"
       {...tip(
-        "algo-trading",
+        "algo-trading-bot",
         "A trading bot that switches ('rotates') between three modes ('regimes') depending on what the bond market is signalling, and trades a paper account to match.",
       )}
     >
@@ -19,7 +19,7 @@ export function Brand() {
         <rect x="7" y="5" width="4" height="12" rx="1" fill="var(--rising)" />
         <rect x="13" y="1" width="4" height="16" rx="1" fill="var(--falling)" />
       </svg>
-      algo-trading
+      algo-trading-bot
     </span>
   );
 }

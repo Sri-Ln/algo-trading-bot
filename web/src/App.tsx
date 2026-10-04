@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadSnapshot, type Snapshot } from "./api/client";
+import { ErrorCard, PageSkeleton } from "./components/Skeleton";
 import { StatusBar } from "./components/StatusBar";
 import { TipLayer, tip } from "./components/Tip";
 import { reprice } from "./lib/finance";
@@ -28,8 +29,8 @@ export const REPO = "https://github.com/Sri-Ln/algo_trading";
 
 export function App() {
   const { value: data, error } = useAsync(loadSnapshot, []);
-  if (error) return <p className="loading">Could not load the console data: {error.message}</p>;
-  if (!data) return <p className="loading">Loading…</p>;
+  if (error) return <ErrorCard message={error.message} />;
+  if (!data) return <PageSkeleton />;
   return <Console data={data} />;
 }
 
@@ -83,13 +84,10 @@ function Console({ data }: { data: Snapshot }) {
         ))}
         <div className="sep" />
         <p className="help">
-          Hover over (or tap) anything to see what it means. Keys 1–5 switch tabs.
-        </p>
-        <p className="help">
           <a href={REPO}>Source on GitHub</a>
         </p>
       </nav>
-      <main>
+      <main key={tab} className="fade-in">
         {tab === "overview" && <Overview data={data} equity={equity} now={now} onGoto={show} onPick={openDay} />}
         {tab === "decisions" && (
           <Decisions data={data} equity={equity} selection={selection} onSelect={setSelection} />

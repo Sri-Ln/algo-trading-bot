@@ -278,7 +278,6 @@ td.sans { font-family: var(--sans); }
 .arch path { stroke: var(--faint); fill: none; stroke-width: 1.2; }
 .arch .ah { fill: var(--faint); stroke: none; }
 
-.loading { max-width: 1320px; margin: 80px auto; text-align: center; color: var(--muted); }
 
 @media (max-width: 1020px) {
   .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -295,3 +294,22 @@ td.sans { font-family: var(--sans); }
   .step .name { grid-column: 2 / -1; }
   .step .detail { grid-column: 2 / 3; }
 }
+
+/* loading skeletons */
+.bone {
+  display: block;
+  flex: none;
+  max-width: 100%;
+  background: linear-gradient(90deg, var(--sunk) 30%, color-mix(in oklab, var(--sunk) 55%, var(--panel)) 50%, var(--sunk) 70%);
+  background-size: 300% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .bone { animation: none; } }
+.skeleton .step { align-items: center; }
+.skeleton .status { min-height: 46px; }
+.table-skeleton { display: grid; gap: 12px 14px; padding: 6px 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.fade-in { animation: fadeIn 0.18s ease-out; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .fade-in { animation: none; } }

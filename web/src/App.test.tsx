@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
 
 // Renders the whole console against the API files written by
@@ -13,11 +13,6 @@ beforeAll(() => {
   if (!existsSync(join(API, "status.json"))) {
     throw new Error(`no exported API in ${API}; run: uv run algo-trading export --out web/public`);
   }
-  vi.stubGlobal("fetch", async (url: string) => {
-    const path = join(API, url.replace(/^api\//, ""));
-    if (!existsSync(path)) return new Response("not found", { status: 404 });
-    return new Response(readFileSync(path), { status: 200 });
-  });
   vi.stubGlobal(
     "ResizeObserver",
     class {
@@ -28,6 +23,13 @@ beforeAll(() => {
   Object.defineProperty(HTMLElement.prototype, "clientWidth", { configurable: true, get: () => 900 });
 });
 
+const fromFiles = async (url: string) => {
+  const path = join(API, url.replace(/^api\//, ""));
+  if (!existsSync(path)) return new Response("not found", { status: 404 });
+  return new Response(readFileSync(path), { status: 200 });
+};
+
+beforeEach(() => vi.stubGlobal("fetch", fromFiles));
 afterEach(cleanup);
 
 const errors: unknown[] = [];
@@ -39,6 +41,20 @@ async function open(tab: string) {
 }
 
 describe("console", () => {
+  it("shows the layout skeleton while data loads", () => {
+    vi.stubGlobal("fetch", () => new Promise(() => {}));
+    render(<App />);
+    expect(screen.getByRole("status").textContent).toContain("Loading the console");
+    expect(screen.getByText("algo-trading-bot")).toBeTruthy();
+  });
+
+  it("offers a retry when data fails to load", async () => {
+    vi.stubGlobal("fetch", async () => new Response("", { status: 503 }));
+    render(<App />);
+    expect((await screen.findByRole("alert")).textContent).toContain("HTTP 503");
+    expect(screen.getByRole("button", { name: "Try again" })).toBeTruthy();
+  });
+
   it("renders every tab without errors", async () => {
     render(<App />);
     await screen.findByRole("heading", { level: 1, name: "Overview" });

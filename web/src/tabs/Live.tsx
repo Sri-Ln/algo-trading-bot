@@ -1,5 +1,6 @@
 import { loadRun, type Run, type Snapshot } from "../api/client";
 import { StatusBadge } from "../components/Chips";
+import { Pending, TableSkeleton } from "../components/Skeleton";
 import { tip } from "../components/Tip";
 import { DESC, NAMES } from "../content";
 import { duration, fmtDate, nyTime, pct, pct0, usd } from "../lib/format";
@@ -9,7 +10,14 @@ const RECENT = 20;
 
 export function Live({ data }: { data: Snapshot }) {
   const recent = data.runs.slice(0, RECENT);
-  const { value: runs } = useAsync(() => Promise.all(recent.map((r) => loadRun(r.trading_day))), [data.runs]);
+  const { value: runs, error } = useAsync(() => Promise.all(recent.map((r) => loadRun(r.trading_day))), [data.runs]);
+  const loading = recent.length > 0 && !runs && !error;
+  const skeleton = (label: string, cols: number, rows = 3) =>
+    loading && (
+      <Pending label={label}>
+        <TableSkeleton cols={cols} rows={rows} />
+      </Pending>
+    );
   const traded = runs?.find((r) => r.decision && r.account);
   const withCalls = runs?.find((r) => r.api_calls.length > 0);
 
@@ -23,12 +31,17 @@ export function Live({ data }: { data: Snapshot }) {
         </p>
       </div>
       {data.runs.length === 0 && <p className="empty">No live runs yet. The first scheduled run fills this tab in.</p>}
+      {error && <p className="empty">Couldn't load the live runs: {error.message}</p>}
       <div className="grid g2">
-        <div className="card">{traded ? <Reconciliation run={traded} /> : <h3>Reconciliation · target vs. held</h3>}</div>
+        <div className="card">
+          {traded ? <Reconciliation run={traded} /> : <h3>Reconciliation · target vs. held</h3>}
+          {skeleton("Loading holdings", 6)}
+        </div>
         <div className="card">
           <h3 {...tip("Orders", "Instructions sent to the broker to buy or sell, newest first, with the ID the bot attaches to each one. Dry runs only plan them.")}>
             Orders · last {RECENT} runs
           </h3>
+          {skeleton("Loading orders", 7)}
           {runs && <Orders runs={runs} />}
         </div>
       </div>
@@ -36,7 +49,8 @@ export function Live({ data }: { data: Snapshot }) {
         <h3 {...tip("Broker API calls", "The raw HTTP requests the bot made to Alpaca during the run. 200 means success. ms is how long each call took. This is what you'd look at when debugging. Credentials are never recorded.")}>
           Broker API calls{withCalls && ` · run ${withCalls.trading_day}`}
         </h3>
-        {withCalls ? <ApiCalls run={withCalls} /> : <p className="empty">No calls recorded yet.</p>}
+        {skeleton("Loading API calls", 5)}
+        {withCalls ? <ApiCalls run={withCalls} /> : !loading && <p className="empty">No calls recorded yet.</p>}
       </div>
     </section>
   );

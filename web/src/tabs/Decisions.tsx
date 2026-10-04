@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { loadDecisions, loadRun, type Decision, type Snapshot } from "../api/client";
 import { HistoryChart } from "../charts/HistoryChart";
 import { YearsTable } from "../charts/YearsTable";
 import { StatusBadge } from "../components/Chips";
 import { DatePicker } from "../components/DatePicker";
+import { Pending, TraceSkeleton } from "../components/Skeleton";
 import { tip } from "../components/Tip";
 import { DecisionJson, DecisionTrace, RunTrace } from "../components/Trace";
 import { DESC, NAMES, regime } from "../content";
@@ -30,8 +31,19 @@ export function Decisions({ data, equity, selection, onSelect }: Props) {
   const live = selection.src === "live" && selection.run !== null;
   const date = history.dates[selection.day]!;
 
-  const { value: run } = useAsync(() => (live ? loadRun(selection.run!) : null), [live, selection.run]);
-  const { value: year } = useAsync(() => (live ? null : loadDecisions(date.slice(0, 4))), [live, date.slice(0, 4)]);
+  const { value: run, error: runError } = useAsync(() => (live ? loadRun(selection.run!) : null), [live, selection.run]);
+  const { value: year, error: yearError } = useAsync(() => (live ? null : loadDecisions(date.slice(0, 4))), [live, date.slice(0, 4)]);
+  const loadError = live ? runError : yearError;
+  const loading = !loadError && (live ? !run : !year);
+
+  // Fetch the neighbouring years too, so stepping or playing across New Year doesn't stall.
+  useEffect(() => {
+    if (live) return;
+    const y = Number(date.slice(0, 4));
+    for (const near of [y - 1, y + 1]) {
+      if (history.dates.some((d) => d.startsWith(String(near)))) loadDecisions(String(near)).catch(() => {});
+    }
+  }, [live, date.slice(0, 4), history.dates]);
   const decision: Decision | undefined | null = live ? run?.decision : year?.[date];
   const decisionDay = decision ? history.dates.indexOf(decision.date) : -1;
   const cursor = live ? (decisionDay >= 0 ? decisionDay : history.dates.length - 1) : selection.day;
@@ -138,6 +150,12 @@ export function Decisions({ data, equity, selection, onSelect }: Props) {
               </button>
             </div>
           </div>
+          {loading && (
+            <Pending label={live ? "Loading the run" : "Loading the decision"}>
+              <TraceSkeleton rows={live ? 6 : 4} />
+            </Pending>
+          )}
+          {loadError && <p className="empty">Couldn't load this {live ? "run" : "day"}: {loadError.message}</p>}
           {view === "trace" && live && run && <RunTrace run={run} windows={windows} signal2={signal2} />}
           {view === "trace" && !live && decision && <DecisionTrace decision={decision} windows={windows} signal2={signal2} />}
           {view === "json" && decision && <DecisionJson decision={decision} />}

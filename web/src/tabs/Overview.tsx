@@ -1,6 +1,7 @@
 import { loadRun, type Run, type Snapshot } from "../api/client";
 import type { Tab } from "../App";
 import { EquityChart } from "../charts/EquityChart";
+import { LinesSkeleton, Pending, TraceSkeleton } from "../components/Skeleton";
 import { tip } from "../components/Tip";
 import { RunTrace } from "../components/Trace";
 import { GLOSSARY, regime, saySharpe } from "../content";
@@ -18,7 +19,8 @@ interface Props {
 export function Overview({ data, equity, now, onGoto, onPick }: Props) {
   const { runs, backtest, history } = data;
   const latest = runs[0];
-  const { value: run } = useAsync(() => (latest ? loadRun(latest.trading_day) : null), [latest?.trading_day]);
+  const { value: run, error: runError } = useAsync(() => (latest ? loadRun(latest.trading_day) : null), [latest?.trading_day]);
+  const runLoading = Boolean(latest && !run && !runError);
   const holdout = history.dates.indexOf(history.holdout_start);
   const firstYear = history.dates[0]!.slice(0, 4);
   const lastYear = history.dates[history.dates.length - 1]!.slice(0, 4);
@@ -41,6 +43,12 @@ export function Overview({ data, equity, now, onGoto, onPick }: Props) {
             </button>
           </div>
           {!latest && <p className="empty">No live runs yet. The first scheduled run fills this in.</p>}
+          {runLoading && (
+            <Pending label="Loading the latest run">
+              <TraceSkeleton rows={5} />
+            </Pending>
+          )}
+          {runError && <p className="empty">Couldn't load this run: {runError.message}</p>}
           {run && (
             <RunTrace
               run={run}
@@ -51,7 +59,13 @@ export function Overview({ data, equity, now, onGoto, onPick }: Props) {
         </div>
         <div className="card">
           <h3 {...tip("Services", "The parts the bot depends on, as seen by its latest run. In engineering this is a status page.")}>Services</h3>
-          <Services data={data} run={run} now={now} />
+          {runLoading ? (
+            <Pending label="Loading service status">
+              <LinesSkeleton rows={5} />
+            </Pending>
+          ) : (
+            <Services data={data} run={run} now={now} />
+          )}
           <h3 style={{ marginTop: 8 }} {...tip("Event log", "Recent things the system did or noticed, newest first, taken from the saved run records.")}>
             Events
           </h3>
