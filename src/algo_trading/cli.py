@@ -1,4 +1,4 @@
-"""Command-line entry point: ``algo-trading backtest`` and ``algo-trading live``."""
+"""Command-line entry point: ``algo-trading backtest``, ``sweep`` and ``live``."""
 
 from __future__ import annotations
 
@@ -17,7 +17,16 @@ from algo_trading.broker import Broker
 from algo_trading.live import LiveConfig, run_live
 from algo_trading.market_data import Bars, CachedMarketData, MarketData, YFinanceMarketData
 from algo_trading.metrics import summarize, summarize_split
-from algo_trading.store import LIVE_DIR, save_run
+from algo_trading.store import BACKTEST_DIR, LIVE_DIR, save_json, save_run
+from algo_trading.strategy import Params
+from algo_trading.sweep import (
+    BOND_LOOKBACKS,
+    RISK_ON_RSI_WINDOWS,
+    CostPoint,
+    SweepCell,
+    cost_sensitivity,
+    parameter_sweep,
+)
 
 # First download date: enough history before the backtest start to warm up the
 # 250-day RSI window. BTAL, the youngest fund, launched in September 2011.
@@ -61,17 +70,57 @@ def format_report(result: BacktestResult, holdout: pd.Timestamp = HOLDOUT_START)
     return "\n".join(lines)
 
 
+def format_sweep(cells: Sequence[SweepCell], baseline: Params) -> str:
+    """Sharpe ratio grids before and during the holdout; ``*`` marks the published settings."""
+    lookbacks = sorted({c.bond_lookback for c in cells})
+    windows = sorted({c.risk_on_rsi_window for c in cells})
+    grid = {(c.bond_lookback, c.risk_on_rsi_window): c for c in cells}
+    published = (baseline.bond_lookback, baseline.risk_on_rsi_window)
+    lines = []
+    for period in ("before_holdout", "holdout"):
+        lines += [
+            f"Sharpe {period.replace('_', ' ')}: bond lookback (rows) x risk-on RSI window",
+            f"{'':>6}" + "".join(f"{w:>8}" for w in windows),
+        ]
+        for lookback in lookbacks:
+            row = f"{lookback:>6}"
+            for w in windows:
+                mark = "*" if (lookback, w) == published else " "
+                row += f"{grid[lookback, w].periods[period].sharpe:>7.2f}{mark}"
+            lines.append(row.rstrip())
+        lines.append("")
+    return "\n".join(lines).rstrip()
+
+
+def format_costs(points: Sequence[CostPoint], every_bps: float = 5.0) -> str:
+    lines = [f"{'cost':>6}{'CAGR':>8}{'Sharpe':>8}{'holdout':>9}{'drag/yr':>9}"]
+    for p in points:
+        if p.cost_bps % every_bps == 0:
+            full = p.periods["full"]
+            lines.append(
+                f"{p.cost_bps:>4g}bp{full.cagr:>8.1%}{full.sharpe:>8.2f}"
+                f"{p.periods['holdout'].sharpe:>9.2f}{p.cost_drag:>9.2%}"
+            )
+    return "\n".join(lines)
+
+
 def main(
     argv: Sequence[str] | None = None,
     source: MarketData | None = None,
     broker: Broker | None = None,
     live_dir: Path = LIVE_DIR,
+    backtest_dir: Path = BACKTEST_DIR,
 ) -> int:
     parser = argparse.ArgumentParser(prog="algo-trading")
     commands = parser.add_subparsers(dest="command", required=True)
     bt = commands.add_parser("backtest", help="run the strategy on historical prices")
     bt.add_argument("--cost-bps", type=float, default=5.0, help="cost per dollar traded")
-    bt.add_argument("--refresh", action="store_true", help="re-download prices")
+    sweep = commands.add_parser(
+        "sweep", help="re-run the backtest with nearby settings and costs; save the results"
+    )
+    sweep.add_argument("--cost-bps", type=float, default=5.0, help="cost for the settings sweep")
+    for cmd in (bt, sweep):
+        cmd.add_argument("--refresh", action="store_true", help="re-download prices")
     live = commands.add_parser("live", help="run today's decision against the paper account")
     live.add_argument("--dry-run", action="store_true", help="plan orders but do not send them")
     args = parser.parse_args(argv)
@@ -84,8 +133,46 @@ def main(
             CACHE_PATH.unlink(missing_ok=True)
         source = CachedMarketData(YFinanceMarketData(), CACHE_PATH)
     bars = load_bars(source)
-    result = run_backtest(bars, BacktestConfig(cost_bps=args.cost_bps, start=BACKTEST_START))
-    print(format_report(result))
+    config = BacktestConfig(cost_bps=args.cost_bps, start=BACKTEST_START)
+    if args.command == "sweep":
+        return _sweep(bars, config, backtest_dir)
+    print(format_report(run_backtest(bars, config)))
+    return 0
+
+
+def _sweep(bars: Bars, config: BacktestConfig, out: Path) -> int:
+    result = run_backtest(bars, config)
+    cells = parameter_sweep(bars, config, HOLDOUT_START, BOND_LOOKBACKS, RISK_ON_RSI_WINDOWS)
+    points = cost_sensitivity(result, HOLDOUT_START)
+    span = {
+        "start": result.equity.index[0].date().isoformat(),
+        "end": result.equity.index[-1].date().isoformat(),
+        "holdout_start": HOLDOUT_START.date().isoformat(),
+    }
+    baseline = config.params
+    sweep_path = save_json(
+        {
+            **span,
+            "cost_bps": config.cost_bps,
+            "baseline": {
+                "bond_lookback": baseline.bond_lookback,
+                "risk_on_rsi_window": baseline.risk_on_rsi_window,
+            },
+            "bond_lookbacks": sorted({c.bond_lookback for c in cells}),
+            "risk_on_rsi_windows": sorted({c.risk_on_rsi_window for c in cells}),
+            "cells": [c.to_dict() for c in cells],
+        },
+        out / "sweep.json",
+    )
+    costs_path = save_json(
+        {**span, "baseline_cost_bps": config.cost_bps, "points": [p.to_dict() for p in points]},
+        out / "costs.json",
+    )
+    print(f"Sweep {span['start']} to {span['end']}  ·  cost {config.cost_bps:g} bps\n")
+    print(format_sweep(cells, baseline))
+    print("\nTrading cost sensitivity (published settings)")
+    print(format_costs(points))
+    print(f"\nsaved {sweep_path} and {costs_path}")
     return 0
 
 
