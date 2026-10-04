@@ -1,4 +1,4 @@
-# algo-trading
+# algo-trading-bot
 
 [![CI](https://github.com/Sri-Ln/algo_trading/actions/workflows/ci.yml/badge.svg)](https://github.com/Sri-Ln/algo_trading/actions/workflows/ci.yml)
 

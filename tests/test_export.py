@@ -51,4 +51,4 @@ def test_export_command_writes_the_site(tmp_path: Path, monkeypatch: pytest.Monk
 def test_openapi_command_writes_the_schema(tmp_path: Path) -> None:
     assert main(["openapi", str(tmp_path / "openapi.json")]) == 0
     schema = json.loads((tmp_path / "openapi.json").read_text())
-    assert schema["info"]["title"] == "algo-trading console API"
+    assert schema["info"]["title"] == "algo-trading-bot console API"

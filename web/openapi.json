@@ -1126,7 +1126,7 @@
   },
   "info": {
     "description": "Read-only data behind the web console, published as static JSON files.",
-    "title": "algo-trading console API",
+    "title": "algo-trading-bot console API",
     "version": "1"
   },
   "openapi": "3.1.0",

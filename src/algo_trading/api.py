@@ -252,7 +252,7 @@ def create_app(load: Callable[[], ConsoleData]) -> FastAPI:
     write its OpenAPI schema) needs no prices.
     """
     app = FastAPI(
-        title="algo-trading console API",
+        title="algo-trading-bot console API",
         version="1",
         description="Read-only data behind the web console, published as static JSON files.",
     )
