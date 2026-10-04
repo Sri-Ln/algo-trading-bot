@@ -1,0 +1,1347 @@
+{
+  "components": {
+    "schemas": {
+      "Account": {
+        "properties": {
+          "cash": {
+            "title": "Cash",
+            "type": "number"
+          },
+          "equity": {
+            "title": "Equity",
+            "type": "number"
+          }
+        },
+        "required": [
+          "equity",
+          "cash"
+        ],
+        "title": "Account",
+        "type": "object"
+      },
+      "ApiCall": {
+        "properties": {
+          "at": {
+            "title": "At",
+            "type": "string"
+          },
+          "elapsed_ms": {
+            "title": "Elapsed Ms",
+            "type": "number"
+          },
+          "method": {
+            "title": "Method",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "at",
+          "method",
+          "path",
+          "status",
+          "elapsed_ms"
+        ],
+        "title": "ApiCall",
+        "type": "object"
+      },
+      "Backtest": {
+        "properties": {
+          "benchmark": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Benchmark",
+            "type": "array"
+          },
+          "bond_lookback": {
+            "title": "Bond Lookback",
+            "type": "integer"
+          },
+          "cost_bps": {
+            "title": "Cost Bps",
+            "type": "number"
+          },
+          "cost_drag": {
+            "title": "Cost Drag",
+            "type": "number"
+          },
+          "dates": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Dates",
+            "type": "array"
+          },
+          "equity": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Equity",
+            "type": "array"
+          },
+          "holdout_start": {
+            "title": "Holdout Start",
+            "type": "string"
+          },
+          "long_bond_lookback": {
+            "title": "Long Bond Lookback",
+            "type": "integer"
+          },
+          "rebalance_threshold": {
+            "title": "Rebalance Threshold",
+            "type": "number"
+          },
+          "rising_rates_rsi_window": {
+            "title": "Rising Rates Rsi Window",
+            "type": "integer"
+          },
+          "risk_on_rsi_window": {
+            "title": "Risk On Rsi Window",
+            "type": "integer"
+          },
+          "run_id": {
+            "title": "Run Id",
+            "type": "string"
+          },
+          "seconds": {
+            "title": "Seconds",
+            "type": "number"
+          },
+          "spy": {
+            "$ref": "#/components/schemas/Periods"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/Periods"
+          },
+          "trades": {
+            "items": {
+              "$ref": "#/components/schemas/TradeDay"
+            },
+            "title": "Trades",
+            "type": "array"
+          },
+          "trades_per_year": {
+            "title": "Trades Per Year",
+            "type": "number"
+          }
+        },
+        "required": [
+          "run_id",
+          "cost_bps",
+          "rebalance_threshold",
+          "bond_lookback",
+          "long_bond_lookback",
+          "risk_on_rsi_window",
+          "rising_rates_rsi_window",
+          "holdout_start",
+          "dates",
+          "equity",
+          "benchmark",
+          "trades",
+          "strategy",
+          "spy",
+          "trades_per_year",
+          "cost_drag",
+          "seconds"
+        ],
+        "title": "Backtest",
+        "type": "object"
+      },
+      "Checks": {
+        "properties": {
+          "coverage": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "passed",
+          "failed",
+          "coverage"
+        ],
+        "title": "Checks",
+        "type": "object"
+      },
+      "CostPoint": {
+        "properties": {
+          "cost_bps": {
+            "title": "Cost Bps",
+            "type": "number"
+          },
+          "cost_drag": {
+            "title": "Cost Drag",
+            "type": "number"
+          },
+          "periods": {
+            "$ref": "#/components/schemas/Periods"
+          }
+        },
+        "required": [
+          "cost_bps",
+          "periods",
+          "cost_drag"
+        ],
+        "title": "CostPoint",
+        "type": "object"
+      },
+      "Costs": {
+        "properties": {
+          "baseline_cost_bps": {
+            "title": "Baseline Cost Bps",
+            "type": "number"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/CostPoint"
+            },
+            "title": "Points",
+            "type": "array"
+          }
+        },
+        "required": [
+          "baseline_cost_bps",
+          "points"
+        ],
+        "title": "Costs",
+        "type": "object"
+      },
+      "Decision": {
+        "properties": {
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/RuleCheck"
+            },
+            "title": "Checks",
+            "type": "array"
+          },
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "regime": {
+            "title": "Regime",
+            "type": "string"
+          },
+          "rsi": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Rsi",
+            "type": "object"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "date",
+          "regime",
+          "checks",
+          "rsi",
+          "weights"
+        ],
+        "title": "Decision",
+        "type": "object"
+      },
+      "Endpoint": {
+        "properties": {
+          "files": {
+            "title": "Files",
+            "type": "integer"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "summary",
+          "files"
+        ],
+        "title": "Endpoint",
+        "type": "object"
+      },
+      "Fund": {
+        "properties": {
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "ticker": {
+            "title": "Ticker",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticker",
+          "role"
+        ],
+        "title": "Fund",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "History": {
+        "description": "One entry per backtest day: the regime chosen and the two signals behind it.",
+        "properties": {
+          "bond_lookback": {
+            "title": "Bond Lookback",
+            "type": "integer"
+          },
+          "dates": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Dates",
+            "type": "array"
+          },
+          "holdout_start": {
+            "title": "Holdout Start",
+            "type": "string"
+          },
+          "long_bond_lookback": {
+            "title": "Long Bond Lookback",
+            "type": "integer"
+          },
+          "regime": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Regime",
+            "type": "array"
+          },
+          "signal_1": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Signal 1",
+            "type": "array"
+          },
+          "signal_2": {
+            "items": {
+              "type": "number"
+            },
+            "title": "Signal 2",
+            "type": "array"
+          }
+        },
+        "required": [
+          "dates",
+          "regime",
+          "signal_1",
+          "signal_2",
+          "bond_lookback",
+          "long_bond_lookback",
+          "holdout_start"
+        ],
+        "title": "History",
+        "type": "object"
+      },
+      "OrderRecord": {
+        "properties": {
+          "client_order_id": {
+            "title": "Client Order Id",
+            "type": "string"
+          },
+          "filled_avg_price": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filled Avg Price"
+          },
+          "filled_qty": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filled Qty"
+          },
+          "order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Id"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "integer"
+          },
+          "side": {
+            "title": "Side",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "side",
+          "qty",
+          "client_order_id",
+          "status"
+        ],
+        "title": "OrderRecord",
+        "type": "object"
+      },
+      "Periods": {
+        "properties": {
+          "before_holdout": {
+            "$ref": "#/components/schemas/Stats"
+          },
+          "full": {
+            "$ref": "#/components/schemas/Stats"
+          },
+          "holdout": {
+            "$ref": "#/components/schemas/Stats"
+          }
+        },
+        "required": [
+          "full",
+          "before_holdout",
+          "holdout"
+        ],
+        "title": "Periods",
+        "type": "object"
+      },
+      "Position": {
+        "properties": {
+          "market_value": {
+            "title": "Market Value",
+            "type": "number"
+          },
+          "qty": {
+            "title": "Qty",
+            "type": "number"
+          }
+        },
+        "required": [
+          "qty",
+          "market_value"
+        ],
+        "title": "Position",
+        "type": "object"
+      },
+      "RuleCheck": {
+        "properties": {
+          "gap": {
+            "title": "Gap",
+            "type": "number"
+          },
+          "left": {
+            "title": "Left",
+            "type": "string"
+          },
+          "left_return": {
+            "title": "Left Return",
+            "type": "number"
+          },
+          "lookback": {
+            "title": "Lookback",
+            "type": "integer"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          },
+          "right": {
+            "title": "Right",
+            "type": "string"
+          },
+          "right_return": {
+            "title": "Right Return",
+            "type": "number"
+          },
+          "rule": {
+            "title": "Rule",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rule",
+          "left",
+          "right",
+          "lookback",
+          "left_return",
+          "right_return",
+          "gap",
+          "passed"
+        ],
+        "title": "RuleCheck",
+        "type": "object"
+      },
+      "Run": {
+        "properties": {
+          "account": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Account"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "api_calls": {
+            "items": {
+              "$ref": "#/components/schemas/ApiCall"
+            },
+            "title": "Api Calls",
+            "type": "array"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Decision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/OrderRecord"
+            },
+            "title": "Orders",
+            "type": "array"
+          },
+          "positions": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Position"
+            },
+            "title": "Positions",
+            "type": "object"
+          },
+          "started_at": {
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/Step"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "trading_day": {
+            "title": "Trading Day",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trading_day",
+          "started_at",
+          "finished_at",
+          "status",
+          "dry_run",
+          "error",
+          "steps",
+          "decision",
+          "orders",
+          "account",
+          "positions",
+          "api_calls"
+        ],
+        "title": "Run",
+        "type": "object"
+      },
+      "RunCounts": {
+        "properties": {
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "integer"
+          },
+          "skipped": {
+            "title": "Skipped",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "ok",
+          "skipped",
+          "failed"
+        ],
+        "title": "RunCounts",
+        "type": "object"
+      },
+      "RunSummary": {
+        "properties": {
+          "dry_run": {
+            "title": "Dry Run",
+            "type": "boolean"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "orders": {
+            "title": "Orders",
+            "type": "integer"
+          },
+          "regime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Regime"
+          },
+          "started_at": {
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "trading_day": {
+            "title": "Trading Day",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trading_day",
+          "started_at",
+          "status",
+          "dry_run",
+          "duration_ms",
+          "regime",
+          "orders",
+          "error"
+        ],
+        "title": "RunSummary",
+        "type": "object"
+      },
+      "Schedule": {
+        "properties": {
+          "cron": {
+            "title": "Cron",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cron",
+          "timezone"
+        ],
+        "title": "Schedule",
+        "type": "object"
+      },
+      "Stats": {
+        "properties": {
+          "cagr": {
+            "title": "Cagr",
+            "type": "number"
+          },
+          "max_drawdown": {
+            "title": "Max Drawdown",
+            "type": "number"
+          },
+          "sharpe": {
+            "title": "Sharpe",
+            "type": "number"
+          },
+          "volatility": {
+            "title": "Volatility",
+            "type": "number"
+          },
+          "years": {
+            "title": "Years",
+            "type": "number"
+          }
+        },
+        "required": [
+          "cagr",
+          "volatility",
+          "sharpe",
+          "max_drawdown",
+          "years"
+        ],
+        "title": "Stats",
+        "type": "object"
+      },
+      "Status": {
+        "properties": {
+          "account": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Account"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "built_at": {
+            "title": "Built At",
+            "type": "string"
+          },
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commit"
+          },
+          "data_end": {
+            "title": "Data End",
+            "type": "string"
+          },
+          "first_account": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Account"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latest_run": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "regime": {
+            "title": "Regime",
+            "type": "string"
+          },
+          "regime_date": {
+            "title": "Regime Date",
+            "type": "string"
+          },
+          "runs": {
+            "$ref": "#/components/schemas/RunCounts"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/Schedule"
+          },
+          "weights": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Weights",
+            "type": "object"
+          }
+        },
+        "required": [
+          "built_at",
+          "commit",
+          "schedule",
+          "latest_run",
+          "runs",
+          "first_account",
+          "account",
+          "regime",
+          "weights",
+          "regime_date",
+          "data_end"
+        ],
+        "title": "Status",
+        "type": "object"
+      },
+      "Step": {
+        "properties": {
+          "detail": {
+            "additionalProperties": true,
+            "title": "Detail",
+            "type": "object"
+          },
+          "ms": {
+            "title": "Ms",
+            "type": "number"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "status",
+          "ms",
+          "detail"
+        ],
+        "title": "Step",
+        "type": "object"
+      },
+      "Sweep": {
+        "properties": {
+          "baseline_bond_lookback": {
+            "title": "Baseline Bond Lookback",
+            "type": "integer"
+          },
+          "baseline_risk_on_rsi_window": {
+            "title": "Baseline Risk On Rsi Window",
+            "type": "integer"
+          },
+          "bond_lookbacks": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Bond Lookbacks",
+            "type": "array"
+          },
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/SweepCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "cost_bps": {
+            "title": "Cost Bps",
+            "type": "number"
+          },
+          "risk_on_rsi_windows": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Risk On Rsi Windows",
+            "type": "array"
+          },
+          "seconds": {
+            "title": "Seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "cost_bps",
+          "baseline_bond_lookback",
+          "baseline_risk_on_rsi_window",
+          "bond_lookbacks",
+          "risk_on_rsi_windows",
+          "cells",
+          "seconds"
+        ],
+        "title": "Sweep",
+        "type": "object"
+      },
+      "SweepCell": {
+        "properties": {
+          "bond_lookback": {
+            "title": "Bond Lookback",
+            "type": "integer"
+          },
+          "periods": {
+            "$ref": "#/components/schemas/Periods"
+          },
+          "risk_on_rsi_window": {
+            "title": "Risk On Rsi Window",
+            "type": "integer"
+          },
+          "trades_per_year": {
+            "title": "Trades Per Year",
+            "type": "number"
+          }
+        },
+        "required": [
+          "bond_lookback",
+          "risk_on_rsi_window",
+          "periods",
+          "trades_per_year"
+        ],
+        "title": "SweepCell",
+        "type": "object"
+      },
+      "System": {
+        "properties": {
+          "built_at": {
+            "title": "Built At",
+            "type": "string"
+          },
+          "checks": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Checks"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commit"
+          },
+          "data_end": {
+            "title": "Data End",
+            "type": "string"
+          },
+          "data_source": {
+            "title": "Data Source",
+            "type": "string"
+          },
+          "data_start": {
+            "title": "Data Start",
+            "type": "string"
+          },
+          "endpoints": {
+            "items": {
+              "$ref": "#/components/schemas/Endpoint"
+            },
+            "title": "Endpoints",
+            "type": "array"
+          },
+          "funds": {
+            "items": {
+              "$ref": "#/components/schemas/Fund"
+            },
+            "title": "Funds",
+            "type": "array"
+          },
+          "output_hash": {
+            "title": "Output Hash",
+            "type": "string"
+          },
+          "rows": {
+            "title": "Rows",
+            "type": "integer"
+          },
+          "schedule": {
+            "$ref": "#/components/schemas/Schedule"
+          }
+        },
+        "required": [
+          "built_at",
+          "commit",
+          "schedule",
+          "funds",
+          "data_source",
+          "data_start",
+          "data_end",
+          "rows",
+          "output_hash",
+          "checks",
+          "endpoints"
+        ],
+        "title": "System",
+        "type": "object"
+      },
+      "TradeDay": {
+        "properties": {
+          "date": {
+            "title": "Date",
+            "type": "string"
+          },
+          "turnover": {
+            "title": "Turnover",
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "turnover"
+        ],
+        "title": "TradeDay",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Read-only data behind the web console, published as static JSON files.",
+    "title": "algo-trading console API",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/backtest.json": {
+      "get": {
+        "operationId": "backtest_api_backtest_json_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Backtest"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Equity curves, trades and statistics"
+      }
+    },
+    "/api/costs.json": {
+      "get": {
+        "operationId": "costs_api_costs_json_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Costs"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Statistics at every trading cost from 0 to 25 bps"
+      }
+    },
+    "/api/decisions/{year}.json": {
+      "get": {
+        "operationId": "decisions_api_decisions__year__json_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "year",
+            "required": true,
+            "schema": {
+              "title": "Year",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/Decision"
+                  },
+                  "title": "Response Decisions Api Decisions  Year  Json Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "strategy() output for each day of a year"
+      }
+    },
+    "/api/history.json": {
+      "get": {
+        "operationId": "history_api_history_json_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/History"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Regime and both signals for every backtest day"
+      }
+    },
+    "/api/runs.json": {
+      "get": {
+        "operationId": "run_list_api_runs_json_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RunSummary"
+                  },
+                  "title": "Response Run List Api Runs Json Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Every live run, newest first"
+      }
+    },
+    "/api/runs/{day}.json": {
+      "get": {
+        "operationId": "run_api_runs__day__json_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "day",
+            "required": true,
+            "schema": {
+              "title": "Day",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Run"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One live run with its step trace and orders"
+      }
+    },
+    "/api/status.json": {
+      "get": {
+        "operationId": "status_api_status_json_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Status"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health, latest run and current regime"
+      }
+    },
+    "/api/sweep.json": {
+      "get": {
+        "operationId": "sweep_api_sweep_json_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sweep"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Backtests with nearby parameter settings"
+      }
+    },
+    "/api/system.json": {
+      "get": {
+        "operationId": "system_api_system_json_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/System"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Build, data, test and endpoint facts"
+      }
+    }
+  }
+}

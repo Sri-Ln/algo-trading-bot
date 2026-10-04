@@ -1,0 +1,5 @@
+node_modules/
+dist/
+# Written by `algo-trading export --out web/public` for local development.
+public/api/
+e2e/screenshots/
