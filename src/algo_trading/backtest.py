@@ -9,7 +9,7 @@ close) on the holdings after any trades.
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import pandas as pd
 
@@ -126,3 +126,28 @@ def _index_on_or_after(dates: pd.DatetimeIndex, day: pd.Timestamp) -> int:
 
 def _index_on_or_before(dates: pd.DatetimeIndex, day: pd.Timestamp) -> int:
     return int(dates.searchsorted(day, side="right")) - 1
+
+
+def with_cost(result: BacktestResult, cost_bps: float) -> BacktestResult:
+    """The same backtest at a different trading cost, without re-running it.
+
+    Costs scale the portfolio's value but never its weights, so the decisions
+    and trades are identical at every cost; only the equity curve changes.
+    """
+    old, new = result.config.cost_bps / 10_000, cost_bps / 10_000
+    step = pd.Series(
+        [(1.0 - t.turnover * new) / (1.0 - t.turnover * old) for t in result.trades],
+        index=pd.DatetimeIndex([t.date for t in result.trades]),
+        dtype=float,
+    )
+    factor = step.reindex(result.equity.index, fill_value=1.0).cumprod()
+    return replace(
+        result,
+        config=replace(result.config, cost_bps=cost_bps),
+        equity=pd.Series(
+            result.equity.to_numpy() * factor.to_numpy(),
+            index=result.equity.index,
+            name=result.equity.name,
+        ),
+        trades=[replace(t, cost=t.turnover * new) for t in result.trades],
+    )

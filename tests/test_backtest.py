@@ -1,7 +1,9 @@
+import numpy as np
 import pandas as pd
 import pytest
 
-from algo_trading.backtest import BacktestConfig, DecideFn, run_backtest
+from algo_trading import universe
+from algo_trading.backtest import BacktestConfig, DecideFn, run_backtest, with_cost
 from algo_trading.market_data import Bars
 from algo_trading.strategy import Decision, Params, Regime, strategy
 from tests.test_strategy import closes as universe_closes
@@ -106,3 +108,20 @@ def test_rejects_too_little_history() -> None:
     flat = [10.0] * 3
     with pytest.raises(ValueError, match="not enough history"):
         run_backtest(bars_from(open_={"A": flat}, close={"A": flat}), BacktestConfig(PARAMS))
+
+
+@pytest.mark.parametrize("cost_bps", [0.0, 3.0, 25.0])
+def test_with_cost_matches_a_full_rerun(rng: np.random.Generator, cost_bps: float) -> None:
+    days = 300
+    walk = {t: 100 * np.cumprod(1 + rng.normal(0, 0.02, days)) for t in universe.ALL_TICKERS}
+    close = pd.DataFrame(walk, index=pd.bdate_range("2020-01-01", periods=days, name="date"))
+    bars = Bars(open=close.shift(1).fillna(close) * 1.001, close=close)
+    params = Params(bond_lookback=5, long_bond_lookback=3, rsi_history=20)
+    base = run_backtest(bars, BacktestConfig(params, cost_bps=5.0))
+    rerun = run_backtest(bars, BacktestConfig(params, cost_bps=cost_bps))
+    repriced = with_cost(base, cost_bps)
+
+    assert len(base.trades) > 10
+    assert repriced.config == rerun.config
+    pd.testing.assert_series_equal(repriced.equity, rerun.equity, rtol=1e-12)
+    assert [t.cost for t in repriced.trades] == pytest.approx([t.cost for t in rerun.trades])
