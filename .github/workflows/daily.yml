@@ -1,0 +1,50 @@
+name: Daily run
+
+on:
+  schedule:
+    # Five minutes after the US market opens. GitHub may start scheduled runs late
+    # under load; the run record keeps the actual start time.
+    - cron: "35 9 * * 1-5"
+      timezone: "America/New_York"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Plan orders without sending them"
+        type: boolean
+        default: true
+
+concurrency:
+  group: daily-run
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+
+      - name: Run strategy against the paper account
+        env:
+          ALPACA_API_KEY_ID: ${{ secrets.ALPACA_API_KEY_ID }}
+          ALPACA_API_SECRET_KEY: ${{ secrets.ALPACA_API_SECRET_KEY }}
+          # Scheduled runs have no inputs, so they always trade.
+          DRY_RUN_FLAG: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: uv run algo-trading live $DRY_RUN_FLAG
+
+      - name: Commit the run record
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/live
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Record live run $(TZ=America/New_York date +%F)"
+          git pull --rebase --quiet
+          git push
