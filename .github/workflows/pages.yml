@@ -1,0 +1,72 @@
+name: Publish console
+
+on:
+  push:
+    branches: [master]
+  # Rebuild after each daily run, so the console shows the newest run record.
+  # (Its commit is pushed with GITHUB_TOKEN, which does not trigger push events.)
+  workflow_run:
+    workflows: ["Daily run"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: uv sync --locked
+      - name: Lint and type check
+        run: |
+          uv run ruff check
+          uv run ruff format --check .
+          uv run mypy
+      - name: Test, recording results for the console
+        run: >
+          uv run pytest -m "not network"
+          --junitxml=reports/junit.xml
+          --cov=algo_trading --cov-report=json:reports/coverage.json
+      - name: Export the API
+        run: >
+          uv run algo-trading export --out web/public
+          --commit "$(git rev-parse HEAD)"
+          --junit reports/junit.xml --coverage reports/coverage.json
+      - name: Build the console
+        working-directory: web
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+          npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
