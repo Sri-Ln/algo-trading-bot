@@ -27,3 +27,8 @@ def save_run(record: RunRecord, root: Path = LIVE_DIR) -> Path:
     payload = record.to_dict()
     save_json(payload, root / "latest.json")
     return save_json(payload, root / "runs" / f"{record.trading_day}.json")
+
+
+def load_runs(root: Path = LIVE_DIR) -> list[dict[str, Any]]:
+    """Every saved run record, oldest first."""
+    return [json.loads(p.read_text()) for p in sorted((root / "runs").glob("*.json"))]

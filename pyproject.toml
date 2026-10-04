@@ -9,6 +9,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
+    "fastapi>=0.142.2",
     "httpx>=0.28.1",
     "numpy>=2.5.3",
     "pandas>=3.0.6",
@@ -28,6 +29,7 @@ dev = [
     "mypy>=2.4.0",
     "pandas-stubs>=3.0.5.260914",
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
     "ruff>=0.16.10",
 ]
 
@@ -51,3 +53,5 @@ ignore_missing_imports = true
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 markers = ["network: needs internet access (deselected in CI with -m 'not network')"]
+# Starlette's test client warns about a future move off httpx; it works as is.
+filterwarnings = ["ignore::starlette.exceptions.StarletteDeprecationWarning"]
