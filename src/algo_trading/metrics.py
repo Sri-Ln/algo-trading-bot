@@ -51,3 +51,18 @@ def summarize(equity: pd.Series, cash_returns: pd.Series | None = None) -> Summa
         max_drawdown=float(drawdown(equity).min()),
         years=years,
     )
+
+
+def summarize_split(
+    equity: pd.Series, cash_returns: pd.Series | None, split: pd.Timestamp
+) -> dict[str, Summary]:
+    """Statistics for the whole curve and for the parts before and after ``split``.
+
+    Both parts include the ``split`` day, so the later part's first return is
+    the one from the split day to the next.
+    """
+    return {
+        "full": summarize(equity, cash_returns),
+        "before_holdout": summarize(equity.loc[:split], cash_returns),
+        "holdout": summarize(equity.loc[split:], cash_returns),
+    }

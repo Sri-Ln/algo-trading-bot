@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from algo_trading.metrics import TRADING_DAYS, drawdown, summarize
+from algo_trading.metrics import TRADING_DAYS, drawdown, summarize, summarize_split
 
 
 def curve(values: list[float]) -> pd.Series:
@@ -49,3 +49,14 @@ def test_flat_curve_has_zero_sharpe() -> None:
 def test_needs_two_points() -> None:
     with pytest.raises(ValueError):
         summarize(curve([1.0]))
+
+
+def test_split_summaries_share_the_split_day() -> None:
+    equity = curve([1.0, 2.0, 4.0, 2.0, 1.0])
+    parts = summarize_split(equity, None, equity.index[2])
+    assert parts["full"].max_drawdown == pytest.approx(-0.75)
+    assert parts["before_holdout"].max_drawdown == 0.0
+    assert parts["holdout"].max_drawdown == pytest.approx(-0.75)
+    assert (
+        parts["before_holdout"].years == parts["holdout"].years == pytest.approx(2 / TRADING_DAYS)
+    )
