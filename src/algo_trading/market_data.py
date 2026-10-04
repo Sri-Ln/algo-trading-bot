@@ -87,7 +87,9 @@ class YFinanceMarketData:
             auto_adjust=True,
             progress=False,
             group_by="column",
-            threads=True,
+            # Parallel downloads share yfinance's SQLite cache and can fail one
+            # ticker with "database is locked"; 15 tickers in series is still fast.
+            threads=False,
         )
         if raw is None or raw.empty:
             raise RuntimeError("no data returned from Yahoo Finance")
