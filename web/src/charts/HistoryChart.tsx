@@ -52,7 +52,7 @@ export function HistoryChart({ dates, regimes, signal1, signal2, cursor, reveal,
       }
       up += `L${x(n - 1)},${mid}Z`;
       dn += `L${x(n - 1)},${mid}Z`;
-      const step = m > 0.08 ? 0.05 : m > 0.03 ? 0.02 : 0.01;
+      const step = m > 0.16 ? 0.1 : m > 0.08 ? 0.05 : m > 0.03 ? 0.02 : 0.01;
       const ticks: number[] = [];
       for (let v = step; v < m * 0.95; v += step) ticks.push(v, -v);
       return { y, mid, up, dn, ticks };

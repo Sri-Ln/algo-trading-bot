@@ -183,7 +183,7 @@ function Architecture() {
       <Box x={10} y={30} w={150} h={46} title="yfinance" sub="daily bars" help="Downloads daily prices from Yahoo Finance, for both the backtest and the live bot. A 'bar' is one day of open and close prices." />
       <Box x={10} y={100} w={150} h={46} title="Parquet cache" sub="backtests offline" help="Backtest prices are cached in Parquet, a compact table format, so backtests are fast and reproducible. The live bot always downloads fresh prices." />
       <Box x={200} y={64} w={130} h={50} title="MarketData" sub="port" help="An interface that just says 'give me prices'. The strategy does not know where they come from, so sources can be swapped without touching it." />
-      <Box x={370} y={54} w={170} h={70} title="strategy()" sub="prices → weights + reasons" core help="The core: a pure function. Prices in; target weights and reasoning out. No network, files or clock, so the same input always gives the same output, and it is easy to test." />
+      <Box x={370} y={54} w={170} h={70} title="strategy()" sub="prices → weights + why" core help="The core: a pure function. Prices in; target weights and reasoning out. No network, files or clock, so the same input always gives the same output, and it is easy to test." />
       <Box x={370} y={170} w={170} h={46} title="Backtest runner" sub="next-open fills, costs" help="Calls strategy() for every past day, simulates trades with costs, and computes the statistics, sweep and cost curve in the Backtests tab." />
       <Box x={580} y={20} w={150} h={46} title="Live runner" sub="Actions · 09:35 ET" help="Started by a scheduled GitHub Actions workflow every weekday morning. Checks the clock, calls strategy() for today, reconciles, places orders, and saves a run record." />
       <Box x={580} y={100} w={150} h={46} title="Broker" sub="port" help="An interface for 'place this order' and 'what do I hold?', so the live runner works with the real broker or a fake one." />
@@ -200,7 +200,7 @@ function Architecture() {
       <Arrow points={[[730, 115], [760, 92]]} />
       <Arrow points={[[730, 128], [760, 148]]} />
       <Arrow points={[[540, 205], [580, 220]]} />
-      <Arrow points={[[580, 43], [560, 43], [560, 200], [580, 200]]} />
+      <Arrow points={[[730, 43], [745, 43], [745, 200], [730, 200]]} />
       <Arrow points={[[730, 214], [760, 216]]} />
     </svg>
   );
