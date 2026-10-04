@@ -7,7 +7,7 @@ realistic backtester. Each day it reads two bond-market signals, picks one of th
 portfolios, and holds it until the signals change. A scheduled job trades it on an Alpaca
 paper account every weekday, and a web console shows every decision, run and backtest.
 
-**Console:** [sri-ln.github.io/algo_trading](https://sri-ln.github.io/algo_trading/)
+**Console:** [tradingbot.srikanthsharma.me](https://tradingbot.srikanthsharma.me)
 
 > Paper trading only. Nothing here is investment advice.
 
