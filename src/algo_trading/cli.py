@@ -1,4 +1,4 @@
-"""Command-line entry point: ``algo-trading backtest``, ``sweep`` and ``live``."""
+"""Command-line entry point: ``algo-trading backtest``, ``sweep``, ``live``, ``export``."""
 
 from __future__ import annotations
 
@@ -12,12 +12,15 @@ import pandas as pd
 
 from algo_trading import universe
 from algo_trading.alpaca import AlpacaBroker
+from algo_trading.api import create_app
 from algo_trading.backtest import BacktestConfig, BacktestResult, run_backtest
 from algo_trading.broker import Broker
+from algo_trading.console import ConsoleData, build_console_data
+from algo_trading.export import export_static, read_checks, write_openapi
 from algo_trading.live import LiveConfig, run_live
 from algo_trading.market_data import Bars, CachedMarketData, MarketData, YFinanceMarketData
 from algo_trading.metrics import summarize, summarize_split
-from algo_trading.store import BACKTEST_DIR, LIVE_DIR, save_json, save_run
+from algo_trading.store import BACKTEST_DIR, LIVE_DIR, load_runs, save_json, save_run
 from algo_trading.strategy import Params
 from algo_trading.sweep import (
     BOND_LOOKBACKS,
@@ -123,10 +126,22 @@ def main(
         cmd.add_argument("--refresh", action="store_true", help="re-download prices")
     live = commands.add_parser("live", help="run today's decision against the paper account")
     live.add_argument("--dry-run", action="store_true", help="plan orders but do not send them")
+    export = commands.add_parser("export", help="write the console API as static JSON files")
+    export.add_argument("--out", type=Path, default=Path("site"), help="output directory")
+    export.add_argument("--commit", help="commit being published, shown in the console")
+    export.add_argument("--junit", type=Path, help="pytest JUnit XML report to publish")
+    export.add_argument("--coverage", type=Path, help="coverage.py JSON report to publish")
+    export.add_argument("--refresh", action="store_true", help="re-download prices")
+    export.add_argument("--cost-bps", type=float, default=5.0, help="cost per dollar traded")
+    openapi = commands.add_parser("openapi", help="write the console API's OpenAPI schema")
+    openapi.add_argument("out", type=Path, help="schema file to write")
     args = parser.parse_args(argv)
 
     if args.command == "live":
         return _live(source, broker, live_dir, dry_run=args.dry_run)
+    if args.command == "openapi":
+        print(f"saved {write_openapi(create_app(_no_data), args.out)}")
+        return 0
 
     if source is None:
         if args.refresh:
@@ -136,6 +151,22 @@ def main(
     config = BacktestConfig(cost_bps=args.cost_bps, start=BACKTEST_START)
     if args.command == "sweep":
         return _sweep(bars, config, backtest_dir)
+    if args.command == "export":
+        checks = read_checks(args.junit, args.coverage) if args.junit else None
+        data = build_console_data(
+            bars,
+            config,
+            HOLDOUT_START,
+            load_runs(live_dir),
+            built_at=dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),
+            commit=args.commit,
+            checks=checks,
+            bond_lookbacks=BOND_LOOKBACKS,
+            risk_on_rsi_windows=RISK_ON_RSI_WINDOWS,
+        )
+        written = export_static(create_app(lambda: data), data, args.out)
+        print(f"wrote {len(written)} files to {args.out}")
+        return 0
     print(format_report(run_backtest(bars, config)))
     return 0
 
@@ -174,6 +205,10 @@ def _sweep(bars: Bars, config: BacktestConfig, out: Path) -> int:
     print(format_costs(points))
     print(f"\nsaved {sweep_path} and {costs_path}")
     return 0
+
+
+def _no_data() -> ConsoleData:
+    raise RuntimeError("the schema needs no data")
 
 
 def _live(source: MarketData | None, broker: Broker | None, live_dir: Path, dry_run: bool) -> int:
