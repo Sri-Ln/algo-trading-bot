@@ -83,9 +83,6 @@ function Console({ data }: { data: Snapshot }) {
         ))}
         <div className="sep" />
         <p className="help">
-          Hover over (or tap) anything to see what it means. Keys 1–5 switch tabs.
-        </p>
-        <p className="help">
           <a href={REPO}>Source on GitHub</a>
         </p>
       </nav>
