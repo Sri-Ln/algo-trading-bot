@@ -16,7 +16,7 @@ from algo_trading.backtest import BacktestConfig, BacktestResult, run_backtest
 from algo_trading.broker import Broker
 from algo_trading.live import LiveConfig, run_live
 from algo_trading.market_data import Bars, CachedMarketData, MarketData, YFinanceMarketData
-from algo_trading.metrics import Summary, summarize
+from algo_trading.metrics import summarize, summarize_split
 from algo_trading.store import LIVE_DIR, save_run
 
 # First download date: enough history before the backtest start to warm up the
@@ -35,13 +35,6 @@ def load_bars(source: MarketData, end: dt.date | None = None) -> Bars:
 def format_report(result: BacktestResult, holdout: pd.Timestamp = HOLDOUT_START) -> str:
     eq, bench, cash = result.equity, result.benchmark, result.cash_returns
 
-    def periods(series: pd.Series) -> list[tuple[str, Summary]]:
-        return [
-            ("full", summarize(series, cash)),
-            ("before holdout", summarize(series.loc[:holdout], cash)),
-            ("holdout", summarize(series.loc[holdout:], cash)),
-        ]
-
     first, last = eq.index[0].date(), eq.index[-1].date()
     lines = [
         f"Backtest {first} to {last}  ·  cost {result.config.cost_bps:g} bps per dollar traded",
@@ -49,9 +42,9 @@ def format_report(result: BacktestResult, holdout: pd.Timestamp = HOLDOUT_START)
         f"{'':<10}{'period':<16}{'CAGR':>8}{'vol':>8}{'Sharpe':>8}{'max DD':>9}",
     ]
     for name, series in (("strategy", eq), ("SPY", bench)):
-        for period, s in periods(series):
+        for period, s in summarize_split(series, cash, holdout).items():
             lines.append(
-                f"{name:<10}{period:<16}{s.cagr:>8.1%}{s.volatility:>8.1%}"
+                f"{name:<10}{period.replace('_', ' '):<16}{s.cagr:>8.1%}{s.volatility:>8.1%}"
                 f"{s.sharpe:>8.2f}{s.max_drawdown:>9.1%}"
             )
             name = ""
