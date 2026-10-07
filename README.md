@@ -1,6 +1,6 @@
-# algo-trading-bot
 
-[![CI](https://github.com/Sri-Ln/algo_trading/actions/workflows/ci.yml/badge.svg)](https://github.com/Sri-Ln/algo_trading/actions/workflows/ci.yml)
+# algo-trading-bot
+<img width="1920" height="1080" alt="frame-02-at-24 25s" src="https://github.com/user-attachments/assets/a5fd3f8d-758a-4d67-9928-703806214d69" />
 
 A rules-based ETF rotation strategy, implemented as a tested Python package with a
 realistic backtester. Each day it reads two bond-market signals, picks one of three
