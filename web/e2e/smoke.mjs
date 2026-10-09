@@ -28,6 +28,30 @@ const errors = [];
 const DARK_BG = "#0a0e14";
 const LIGHT_BG = "#f2f4f7";
 
+// The status bar stays where it starts while the page scrolls under it, and the sticky
+// side nav (desktop) stays below it however many rows the bar wraps to.
+async function checkSticky(browser, name, viewport) {
+  const fail = (msg) => errors.push(`sticky ${name}: ${msg}`);
+  const page = await browser.newPage({ viewport });
+  page.on("pageerror", (e) => fail(e.message));
+  await page.goto(`http://localhost:${PORT}/#backtests`);
+  await page.getByRole("heading", { level: 1, name: "Backtests" }).waitFor();
+  const at = () =>
+    page.evaluate(() => {
+      const bar = document.querySelector(".status").getBoundingClientRect();
+      const nav = document.querySelector("nav.side");
+      return { top: bar.top, bottom: bar.bottom, navTop: nav.getBoundingClientRect().top, navSticky: getComputedStyle(nav).position === "sticky" };
+    });
+  const before = await at();
+  await page.evaluate(() => scrollTo(0, 900));
+  await page.waitForTimeout(200);
+  const after = await at();
+  if ((await page.evaluate(() => scrollY)) < 300) fail("page did not scroll; the test needs a longer tab");
+  if (Math.abs(after.top - before.top) > 1) fail(`status bar moved from ${before.top} to ${after.top}`);
+  if (after.navSticky && after.navTop < after.bottom) fail(`side nav (top ${after.navTop}) is under the status bar (bottom ${after.bottom})`);
+  await page.close();
+}
+
 // The theme switch: a choice survives a reload with no light frame first, System follows
 // the OS live, and colors drawn from CSS variables (charts, regime bands) repaint without a reload.
 async function checkTheme(browser, name, viewport) {
@@ -150,6 +174,7 @@ try {
     ["phone", { width: 400, height: 860 }],
   ]) {
     await checkTheme(browser, name, viewport);
+    await checkSticky(browser, name, viewport);
   }
   await browser.close();
 } finally {
