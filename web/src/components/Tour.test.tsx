@@ -38,7 +38,7 @@ function setup() {
     <>
       <div data-tour="a" />
       <div data-tour="b" />
-      <Tour steps={STEPS} onClose={onClose} />
+      <Tour steps={STEPS} motion="instant" onClose={onClose} />
     </>,
   );
   const title = () => screen.getByRole("dialog").querySelector("h2")!.textContent;

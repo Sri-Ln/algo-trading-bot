@@ -56,24 +56,28 @@ async function checkSticky(browser, name, viewport) {
   await page.close();
 }
 
-// The product tour: opens by itself on a first visit, outlines each Overview section in turn
-// with the rest of the page dimmed and blocked, stays closed on the next visit, and replays
-// from its button (Next with the arrow key, Esc and Skip to close).
+// The product tour: opens by itself a moment into a first visit, travels smoothly between the
+// Overview sections with the rest of the page dimmed and blocked, stays closed on the next
+// visit, and replays from its button (Next with the arrow key, Esc and Skip to close).
 async function checkTour(browser, name, viewport) {
   const fail = (msg) => errors.push(`tour ${name}: ${msg}`);
-  const context = await browser.newContext({ viewport, colorScheme: "light", reducedMotion: "reduce" });
+  const context = await browser.newContext({ viewport, colorScheme: "light" });
   const page = await context.newPage();
   page.on("pageerror", (e) => fail(e.message));
   page.on("console", (m) => m.type() === "error" && fail(m.text()));
   const dialog = page.getByRole("dialog");
   const tourButton = page.getByRole("button", { name: "Product tour" });
+  const settled = () => page.waitForFunction(() => document.querySelector(".tour-card")?.dataset.settled === "true", null, { timeout: 5000 });
+  const holeAt = () => page.evaluate(() => document.querySelector(".tour-hole").getBoundingClientRect().toJSON());
 
   await page.goto(`http://localhost:${PORT}/`);
+  await page.getByRole("heading", { level: 1, name: "Overview" }).waitFor();
+  if (await dialog.count()) fail("the tour opened the moment the page appeared");
   await dialog.waitFor();
   if ((await page.evaluate(() => localStorage.getItem("tour"))) !== "seen") fail("the first visit was not remembered");
   const total = Number((await dialog.locator(".tour-count").textContent()).split(" of ")[1]);
   for (let i = 1; i <= total; i++) {
-    await page.waitForTimeout(150);
+    await settled();
     const s = await page.evaluate(() => {
       const box = (r) => ({ top: r.top, left: r.left, bottom: r.bottom, right: r.right, height: r.height });
       const card = document.querySelector(".tour-card");
@@ -98,7 +102,17 @@ async function checkTour(browser, name, viewport) {
     if (roomy && card.top < el.bottom && card.bottom > el.top && card.left < el.right && card.right > el.left) fail(`${at}: card covers the section`);
     if (s.corner !== "tour-block") fail(`${at}: the page behind the tour is clickable (${s.corner})`);
     await page.screenshot({ path: `${OUT}/tour-${name}-${i}-${s.target}.png` });
+    const from = await holeAt();
     await dialog.getByRole("button", { name: i === total ? "Done" : "Next" }).click();
+    // Mid-move, the spotlight is between the two sections rather than at either.
+    if (i === 2) {
+      await page.waitForTimeout(200);
+      const mid = await holeAt();
+      await settled();
+      const to = await holeAt();
+      const off = (a, b) => Math.abs(a.top - b.top) + Math.abs(a.left - b.left) + Math.abs(a.width - b.width) + Math.abs(a.height - b.height);
+      if (off(mid, from) < 8 || off(mid, to) < 8) fail(`the spotlight jumped instead of moving (from ${off(mid, from)}px, to ${off(mid, to)}px)`);
+    }
   }
   if (await dialog.count()) fail("Done did not close the tour");
 
@@ -117,10 +131,36 @@ async function checkTour(browser, name, viewport) {
   if (await dialog.count()) fail("Escape did not close the tour");
   if (!(await tourButton.evaluate((b) => b === document.activeElement))) fail("focus did not return to the tour button");
 
+  // With reduced motion the spotlight jumps straight to the next section.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await tourButton.click();
+  await dialog.waitFor();
+  await dialog.getByRole("button", { name: "Next" }).click();
+  await page.waitForTimeout(60);
+  if ((await page.evaluate(() => document.querySelector(".tour-card").dataset.settled)) !== "true") fail("reduced motion still animates");
+  await page.keyboard.press("Escape");
+
+  // Every motion style lands on the section.
+  for (const motion of ["stalk", "skitter", "instant"]) {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.goto(`http://localhost:${PORT}/?tour=${motion}`);
+    await tourButton.click();
+    await dialog.getByRole("button", { name: "Next" }).click();
+    await settled();
+    const ok = await page.evaluate(() => {
+      const el = document.querySelector('[data-tour="kpis"]').getBoundingClientRect();
+      const h = document.querySelector(".tour-hole").getBoundingClientRect();
+      return Math.abs(h.top + 6 - el.top) < 1.5 && Math.abs(h.width - 12 - el.width) < 1.5;
+    });
+    if (!ok) fail(`?tour=${motion} did not land on the section`);
+    await page.keyboard.press("Escape");
+  }
+
+  await page.goto(`http://localhost:${PORT}/`);
   await page.emulateMedia({ colorScheme: "dark" });
   await tourButton.click();
   await dialog.waitFor();
-  await page.waitForTimeout(150);
+  await settled();
   await page.screenshot({ path: `${OUT}/tour-${name}-dark.png` });
   await dialog.getByRole("button", { name: "Skip tour" }).click();
   if (await dialog.count()) fail("Skip did not close the tour");
