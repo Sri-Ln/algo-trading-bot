@@ -161,6 +161,17 @@ async function checkTour(browser, name, viewport) {
   await tourButton.click();
   await dialog.waitFor();
   await settled();
+  // Once landed, the tour does no work (it used to redraw every frame, which costs battery).
+  const writes = await page.evaluate(
+    () =>
+      new Promise((done) => {
+        let n = 0;
+        const watch = new MutationObserver((m) => (n += m.length));
+        watch.observe(document.querySelector(".tour"), { attributes: true, subtree: true });
+        setTimeout(() => (watch.disconnect(), done(n)), 500);
+      }),
+  );
+  if (writes) fail(`the settled tour still changed the page ${writes} times in 0.5s`);
   await page.screenshot({ path: `${OUT}/tour-${name}-dark.png` });
   await dialog.getByRole("button", { name: "Skip tour" }).click();
   if (await dialog.count()) fail("Skip did not close the tour");

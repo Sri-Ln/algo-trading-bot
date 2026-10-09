@@ -127,6 +127,8 @@ export function Tour({ steps = STEPS, motion, onClose }: { steps?: TourStep[]; m
   // What is on screen now, and where the current move started from and when.
   const shown = useRef<{ hole: Box; card: Point | null } | null>(null);
   const move = useRef({ target: "", from: screenBox(), cardFrom: null as Point | null, start: 0 });
+  // Starts drawing frames again after the tour has gone idle (set up by the draw effect).
+  const wake = useRef(() => {});
   const step = steps[i]!;
   const last = i === steps.length - 1;
   const next = () => (last ? onClose() : setI(i + 1));
@@ -148,10 +150,13 @@ export function Tour({ steps = STEPS, motion, onClose }: { steps?: TourStep[]; m
     card.current!.dataset.settled = "false";
     find(step.target)?.scrollIntoView({ block: "center", behavior: spec.ms ? "smooth" : "auto" });
     nextBtn.current?.focus({ preventScroll: true });
+    wake.current();
   }, [step.target, spec]);
 
-  // Every frame: ease from the start of the move toward the section's live position, so the
-  // spotlight lands correctly even while the page scrolls underneath it.
+  // Draws frames only while something moves: during a step's move, and when the page scrolls or
+  // reflows. Each frame eases from the start of the move toward the section's live position, so
+  // the spotlight lands correctly even while the page scrolls underneath it. Once it has landed
+  // the tour does no work at all, which matters on a laptop running on battery.
   useLayoutEffect(() => {
     let frame = 0;
     const draw = (now: number) => {
@@ -172,11 +177,24 @@ export function Tour({ steps = STEPS, motion, onClose }: { steps?: TourStep[]; m
       el.style.opacity = m.cardFrom ? "1" : String(Math.min(1, Math.max(0, (p - 0.35) / 0.65)));
       el.style.translate = m.cardFrom ? "" : `0 ${(1 - p) * 10}px`;
       shown.current = { hole: h, card: cp };
-      el.dataset.settled = String(t === 1);
-      frame = requestAnimationFrame(draw);
+      if (el.dataset.settled !== String(t === 1)) el.dataset.settled = String(t === 1);
+      frame = t < 1 ? requestAnimationFrame(draw) : 0;
     };
+    const kick = () => {
+      if (!frame) frame = requestAnimationFrame(draw);
+    };
+    wake.current = kick;
     draw(performance.now());
-    return () => cancelAnimationFrame(frame);
+    addEventListener("scroll", kick, { capture: true, passive: true });
+    addEventListener("resize", kick);
+    const reflow = new ResizeObserver(kick);
+    reflow.observe(document.body);
+    return () => {
+      cancelAnimationFrame(frame);
+      removeEventListener("scroll", kick, { capture: true });
+      removeEventListener("resize", kick);
+      reflow.disconnect();
+    };
   }, [spec]);
 
   // Keyboard: Esc closes, arrows move, Tab stays inside the card.
