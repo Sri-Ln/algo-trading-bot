@@ -1,8 +1,10 @@
+import { useEffect, useRef } from "react";
 import type { Status } from "../api/client";
 import { regime } from "../content";
 import { nextScheduledRun } from "../lib/finance";
 import { duration, fmtDate, nyTime, pct, usd } from "../lib/format";
 import { RegimeChip, StatusBadge } from "./Chips";
+import { ThemeSwitch } from "./ThemeSwitch";
 import { tip } from "./Tip";
 
 export function Brand() {
@@ -43,8 +45,20 @@ export function StatusBar({ status, now }: { status: Status; now: Date }) {
   const account = status.account;
   const start = status.first_account?.equity;
   const change = account && start ? account.equity / start - 1 : null;
+  const ref = useRef<HTMLElement>(null);
+  // The bar wraps to more rows on narrow screens; the sticky side nav sits below it.
+  useEffect(() => {
+    const el = ref.current!;
+    const root = document.documentElement;
+    const observer = new ResizeObserver(() => root.style.setProperty("--status-h", `${el.offsetHeight}px`));
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--status-h");
+    };
+  }, []);
   return (
-    <header className="status">
+    <header className="status" ref={ref}>
       <Brand />
       <span className="stat" {...tip("Bot health", h.tip)}>
         <span className={`led ${h.led}`} />
@@ -90,6 +104,7 @@ export function StatusBar({ status, now }: { status: Status; now: Date }) {
       <span className="stat" {...tip("Mode", `${regime(status.regime).tip} Decided on the close of ${fmtDate(status.regime_date)}.`)}>
         mode <RegimeChip value={status.regime} />
       </span>
+      <ThemeSwitch />
     </header>
   );
 }

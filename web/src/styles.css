@@ -1,5 +1,13 @@
 /* App shell: status bar across the top, tab nav on the left, one panel grid per tab. */
+/* Theme tokens. Light is the default; dark applies when the OS prefers it (unless the viewer
+   picked Light) or when the viewer picked Dark. The switch sets data-theme on <html>; see
+   src/lib/theme.ts and the inline script in index.html. Keep the two dark blocks identical. */
 :root {
+  --sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+:root,
+:root[data-theme="light"] {
   color-scheme: light;
   --bg: #f2f4f7;
   --panel: #ffffff;
@@ -9,6 +17,7 @@
   --faint: #8a94a3;
   --line: #dde2e9;
   --accent: #3157d5;
+  --on-accent: #ffffff;
   --ok: #1e9a57;
   --warn: #c7861a;
   --err: #cf4040;
@@ -19,12 +28,9 @@
   --tip-bg: #111a27;
   --tip-ink: #f1f4f8;
   --tip-muted: #a9b4c3;
-  --on-accent: #ffffff;
-  --sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     color-scheme: dark;
     --bg: #0a0e14;
     --panel: #111720;
@@ -46,6 +52,28 @@
     --tip-ink: #111a27;
     --tip-muted: #4e5a6b;
   }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a0e14;
+  --panel: #111720;
+  --sunk: #161e29;
+  --ink: #e4e9f0;
+  --muted: #96a2b3;
+  --faint: #6b7789;
+  --line: #222c39;
+  --accent: #7c9cff;
+  --on-accent: #0b1220;
+  --ok: #3fcb7e;
+  --warn: #e6a43c;
+  --err: #f06a6a;
+  --bench: #6f7b8c;
+  --on: #f0a04b;
+  --rising: #b183ec;
+  --falling: #3db7bb;
+  --tip-bg: #e9eef5;
+  --tip-ink: #111a27;
+  --tip-muted: #4e5a6b;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -71,7 +99,10 @@ svg [data-tip]:hover rect, svg [data-tip].tipped rect { stroke: var(--accent); s
 #tipbox .say::before { content: "What it says here: "; color: var(--tip-muted); }
 
 .app { max-width: 1320px; margin: 0 auto; padding-block: 14px 40px; display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 14px; }
-.status { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+.status { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 14px); z-index: 5;
+  /* Pinned where it starts (.app's 14px top padding). The --bg frame hides content scrolling under it,
+     including the rounded corners and the strip above, up to a ~48px safe-area inset. */
+  box-shadow: 0 0 0 14px var(--bg), 0 -48px 0 14px var(--bg); }
 .brand { display: flex; align-items: center; gap: 9px; font: 600 0.95rem var(--mono); margin-right: auto; }
 .brand svg { flex: none; }
 .stat { display: inline-flex; align-items: center; gap: 7px; font-size: 0.82rem; color: var(--muted); }
@@ -81,7 +112,7 @@ svg [data-tip]:hover rect, svg [data-tip].tipped rect { stroke: var(--accent); s
 .led.err { background: var(--err); box-shadow: 0 0 0 3px color-mix(in oklab, var(--err) 22%, transparent); }
 .led.dim { background: var(--faint); box-shadow: 0 0 0 3px color-mix(in oklab, var(--faint) 22%, transparent); }
 
-nav.side { display: flex; flex-direction: column; gap: 6px; align-self: start; position: sticky; top: 72px; }
+nav.side { display: flex; flex-direction: column; gap: 6px; align-self: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--status-h, 46px) + 28px); }
 nav.side button { position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; gap: 10px; text-align: left; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; font-weight: 500; transition: color 0.25s ease; }
 nav.side button::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); z-index: -1; transition: width 0.25s ease; }
 nav.side button[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
@@ -126,6 +157,12 @@ section[data-panel] > * + * { margin-top: 14px; }
 .seg button { border: 0; background: var(--panel); padding: 4px 11px; font-size: 0.8rem; cursor: pointer; color: var(--muted); }
 .seg button + button { border-left: 1px solid var(--line); }
 .seg button[aria-pressed="true"] { background: var(--sunk); color: var(--ink); font-weight: 600; }
+.seg.theme { margin-left: auto; }
+.seg.theme button { display: inline-flex; align-items: center; padding: 4px 7px; }
+.seg.theme svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.seg.theme button:hover { color: var(--accent); }
+.seg.theme button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.seg.theme button:focus-visible { outline-offset: -3px; outline-color: var(--ink); }
 .link { background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; font-size: 0.82rem; }
 .empty { color: var(--muted); font-size: 0.84rem; padding: 6px 0; }
 .foot { color: var(--muted); font-size: 0.8rem; }
@@ -184,7 +221,7 @@ pre.json { margin: 0; background: var(--sunk); border: 1px solid var(--line); bo
 .dp-row { display: flex; gap: 6px; align-items: center; }
 .dp-row .btn { white-space: nowrap; }
 .dp-row > * { flex: 1 1 0; min-width: 0; }
-.dp-row input[type="date"] { flex: 0 0 122px; border: 1px solid var(--line); border-radius: 6px; padding: 3px 4px; background: var(--panel); color: var(--ink); font: 0.76rem var(--mono); color-scheme: light dark; }
+.dp-row input[type="date"] { flex: 0 0 122px; border: 1px solid var(--line); border-radius: 6px; padding: 3px 4px; background: var(--panel); color: var(--ink); font: 0.76rem var(--mono); }
 .dp-cal { display: grid; grid-template-columns: 2.4ch repeat(12, minmax(0, 1fr)); gap: 2px; font: 0.62rem var(--mono); color: var(--faint); }
 .dp-cal .ml { text-align: center; }
 .dp-cal .yl { display: flex; align-items: center; }
@@ -289,7 +326,6 @@ td.sans { font-family: var(--sans); }
   nav.side { position: static; flex-direction: row; overflow-x: auto; gap: 6px; }
   nav.side button { flex: none; }
   nav.side .sep, nav.side .help { display: none; }
-  .status { position: static; }
   .step { grid-template-columns: 14px minmax(0, 1fr) 5ch 14px; }
   .step .name { grid-column: 2 / -1; }
   .step .detail { grid-column: 2 / 3; }
