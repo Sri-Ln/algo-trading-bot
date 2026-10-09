@@ -88,6 +88,31 @@ function measure(target: string): Box | null {
   return { top: r.top - PAD, left: r.left - PAD, width: r.width + 2 * PAD, height: r.height + 2 * PAD };
 }
 
+/** True for elements that stay put when the page scrolls (inside the sticky status bar or side nav). */
+function pinned(el: HTMLElement): boolean {
+  for (let e: HTMLElement | null = el; e; e = e.parentElement) {
+    const p = getComputedStyle(e).position;
+    if (p === "sticky" || p === "fixed") return true;
+  }
+  return false;
+}
+
+/**
+ * Scrolls so the section and the card below it fit together under the sticky status bar, or,
+ * when the section is too tall for both, so its top sits just under the bar. Sections that
+ * don't scroll with the page are left where they are.
+ */
+function bringIntoView(target: string, cardHeight: number, smooth: boolean) {
+  const el = find(target);
+  if (!el || pinned(el)) return;
+  const bar = document.querySelector(".status")?.getBoundingClientRect().bottom ?? 0;
+  const r = el.getBoundingClientRect();
+  const room = innerHeight - bar - 2 * EDGE;
+  const block = r.height + 2 * PAD + GAP + cardHeight;
+  const top = bar + EDGE + PAD + Math.max(0, (room - block) / 2);
+  scrollTo({ top: scrollY + r.top - top, behavior: smooth ? "smooth" : "auto" });
+}
+
 /** The card goes below the section if it fits, else above, else as low as it can; centered with no section. */
 function placeCard(box: Box | null, w: number, h: number): Point {
   let top: number;
@@ -139,7 +164,7 @@ export function Tour({ steps = STEPS, motion, onClose }: { steps?: TourStep[]; m
       start: performance.now(),
     };
     card.current!.dataset.settled = "false";
-    find(step.target)?.scrollIntoView({ block: "center", behavior: spec.ms ? "smooth" : "auto" });
+    bringIntoView(step.target, card.current!.offsetHeight, spec.ms > 0);
     nextBtn.current?.focus({ preventScroll: true });
     wake.current();
   }, [step.target, spec]);

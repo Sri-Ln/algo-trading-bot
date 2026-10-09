@@ -89,6 +89,10 @@ async function checkTour(browser, name, viewport) {
         hole: box(document.querySelector(".tour-hole").getBoundingClientRect()),
         card: box(card.getBoundingClientRect()),
         corner: document.elementFromPoint(2, innerHeight - 2)?.className,
+        // Space below the sticky status bar, unless the section is in the bar.
+        room: document.querySelector(".status").contains(document.querySelector(`[data-tour="${target}"]`))
+          ? innerHeight
+          : innerHeight - document.querySelector(".status").getBoundingClientRect().bottom,
       };
     });
     const at = `step ${i} (${s.target})`;
@@ -98,7 +102,7 @@ async function checkTour(browser, name, viewport) {
     if (!around || el.top - hole.top > 10) fail(`${at}: outline ${JSON.stringify(hole)} is not around the section ${JSON.stringify(el)}`);
     if (el.height < viewport.height && (el.top < 0 || el.bottom > viewport.height)) fail(`${at}: section is not fully on screen`);
     if (card.top < 0 || card.left < 0 || card.bottom > viewport.height || card.right > viewport.width) fail(`${at}: card is off screen`);
-    const roomy = el.height + card.height + 40 < viewport.height;
+    const roomy = el.height + card.height + 40 < s.room;
     if (roomy && card.top < el.bottom && card.bottom > el.top && card.left < el.right && card.right > el.left) fail(`${at}: card covers the section`);
     if (s.corner !== "tour-block") fail(`${at}: the page behind the tour is clickable (${s.corner})`);
     await page.screenshot({ path: `${OUT}/tour-${name}-${i}-${s.target}.png` });
