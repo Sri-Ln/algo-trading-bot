@@ -140,24 +140,8 @@ async function checkTour(browser, name, viewport) {
   if ((await page.evaluate(() => document.querySelector(".tour-card").dataset.settled)) !== "true") fail("reduced motion still animates");
   await page.keyboard.press("Escape");
 
-  // Every motion style lands on the section.
-  for (const motion of ["stalk", "skitter", "instant"]) {
-    await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.goto(`http://localhost:${PORT}/?tour=${motion}`);
-    await tourButton.click();
-    await dialog.getByRole("button", { name: "Next" }).click();
-    await settled();
-    const ok = await page.evaluate(() => {
-      const el = document.querySelector('[data-tour="kpis"]').getBoundingClientRect();
-      const h = document.querySelector(".tour-hole").getBoundingClientRect();
-      return Math.abs(h.top + 6 - el.top) < 1.5 && Math.abs(h.width - 12 - el.width) < 1.5;
-    });
-    if (!ok) fail(`?tour=${motion} did not land on the section`);
-    await page.keyboard.press("Escape");
-  }
-
   await page.goto(`http://localhost:${PORT}/`);
-  await page.emulateMedia({ colorScheme: "dark" });
+  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "no-preference" });
   await tourButton.click();
   await dialog.waitFor();
   await settled();

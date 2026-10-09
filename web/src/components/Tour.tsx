@@ -59,25 +59,16 @@ type Box = { top: number; left: number; width: number; height: number };
 type Point = { top: number; left: number };
 
 /**
- * How the spotlight and card travel from one section to the next. Try them with `?tour=<name>`.
- * glide: slow and fluid ("balletic"); stalk: a still beat, then a deliberate approach that
- * settles; skitter: quick, with a small overshoot; instant: jumps (also used for reduced motion).
+ * How the spotlight and card travel from one section to the next. glide: ease-out, so it answers
+ * the click at once and slows as it lands; instant: jumps, for viewers who ask for reduced motion.
  */
-export type Motion = "glide" | "stalk" | "skitter" | "instant";
-const MOTIONS: Record<Motion, { ms: number; wait: number; ease: (t: number) => number }> = {
-  // Ease-out, so it answers the click at once and slows as it lands.
-  glide: { ms: 450, wait: 0, ease: (t) => 1 - (1 - t) ** 3 },
-  stalk: { ms: 800, wait: 220, ease: (t) => (t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2) },
-  skitter: { ms: 320, wait: 0, ease: (t) => 1 + 2.4 * (t - 1) ** 3 + 1.4 * (t - 1) ** 2 },
-  instant: { ms: 0, wait: 0, ease: () => 1 },
+export type Motion = "glide" | "instant";
+const MOTIONS: Record<Motion, { ms: number; ease: (t: number) => number }> = {
+  glide: { ms: 450, ease: (t) => 1 - (1 - t) ** 3 },
+  instant: { ms: 0, ease: () => 1 },
 };
 
-/** The motion from `?tour=`, glide by default, instant when the viewer asks for reduced motion. */
-export function pickMotion(): Motion {
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return "instant";
-  const asked = new URLSearchParams(location.search).get("tour");
-  return asked && asked in MOTIONS ? (asked as Motion) : "glide";
-}
+const pickMotion = (): Motion => (matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "glide");
 
 const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
 const lerpBox = (a: Box, b: Box, p: number): Box => ({
@@ -145,7 +136,7 @@ export function Tour({ steps = STEPS, motion, onClose }: { steps?: TourStep[]; m
       target: step.target,
       from: shown.current?.hole ?? screenBox(),
       cardFrom: shown.current?.card ?? null,
-      start: performance.now() + spec.wait,
+      start: performance.now(),
     };
     card.current!.dataset.settled = "false";
     find(step.target)?.scrollIntoView({ block: "center", behavior: spec.ms ? "smooth" : "auto" });
