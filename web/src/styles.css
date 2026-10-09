@@ -184,7 +184,7 @@ pre.json { margin: 0; background: var(--sunk); border: 1px solid var(--line); bo
 .dp-row { display: flex; gap: 6px; align-items: center; }
 .dp-row .btn { white-space: nowrap; }
 .dp-row > * { flex: 1 1 0; min-width: 0; }
-.dp-row input[type="date"] { flex: 0 0 122px; border: 1px solid var(--line); border-radius: 6px; padding: 3px 4px; background: var(--panel); color: var(--ink); font: 0.76rem var(--mono); color-scheme: light dark; }
+.dp-row input[type="date"] { flex: 0 0 122px; border: 1px solid var(--line); border-radius: 6px; padding: 3px 4px; background: var(--panel); color: var(--ink); font: 0.76rem var(--mono); }
 .dp-cal { display: grid; grid-template-columns: 2.4ch repeat(12, minmax(0, 1fr)); gap: 2px; font: 0.62rem var(--mono); color: var(--faint); }
 .dp-cal .ml { text-align: center; }
 .dp-cal .yl { display: flex; align-items: center; }
