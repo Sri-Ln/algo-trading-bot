@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { App } from "./App";
+import { App, TOUR_DELAY_MS } from "./App";
 import { TOUR_KEY } from "./lib/tour";
 
 // Renders the whole console against the API files written by
@@ -93,9 +93,11 @@ describe("product tour", () => {
     history.replaceState(null, "", location.pathname);
   });
 
-  it("opens on a first visit and not on the next", async () => {
+  it("opens a moment into a first visit, and not on the next", async () => {
     render(<App />);
-    const dialog = await screen.findByRole("dialog");
+    await screen.findByRole("heading", { level: 1, name: "Overview" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    const dialog = await screen.findByRole("dialog", {}, { timeout: TOUR_DELAY_MS + 1500 });
     expect(dialog.textContent).toContain("Status bar");
     expect(localStorage.getItem(TOUR_KEY)).toBe("seen");
     await act(async () => fireEvent.click(screen.getByRole("button", { name: "Skip tour" })));
@@ -111,6 +113,7 @@ describe("product tour", () => {
     history.replaceState(null, "", "#backtests");
     render(<App />);
     await screen.findByRole("heading", { level: 1, name: "Backtests" });
+    await act(() => new Promise((r) => setTimeout(r, TOUR_DELAY_MS + 200)));
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(localStorage.getItem(TOUR_KEY)).toBeNull();
   });
@@ -127,7 +130,7 @@ describe("product tour", () => {
 
   it("pauses the 1-5 tab shortcuts while open", async () => {
     render(<App />);
-    await screen.findByRole("dialog");
+    await screen.findByRole("dialog", {}, { timeout: TOUR_DELAY_MS + 1500 });
     await act(async () => fireEvent.keyDown(document, { key: "3" }));
     expect(screen.getByRole("heading", { level: 1, name: "Overview" })).toBeTruthy();
   });

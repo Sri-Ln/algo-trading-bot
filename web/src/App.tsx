@@ -27,6 +27,9 @@ const tabFromHash = (): Tab => {
   return (TABS.find(([t]) => t === h)?.[0] ?? "overview") as Tab;
 };
 
+/** How long a first visit sees the page before the tour opens. */
+export const TOUR_DELAY_MS = 1200;
+
 export const REPO = "https://github.com/Sri-Ln/algo_trading";
 
 export function App() {
@@ -44,8 +47,14 @@ function Console({ data }: { data: Snapshot }) {
     data.runs[0] ? { src: "live", run: data.runs[0].trading_day, day: lastDay } : { src: "replay", run: null, day: lastDay },
   );
   const now = useMemo(() => new Date(), []);
-  // Opens by itself on a first visit to Overview; deep links to other tabs aren't interrupted.
-  const [touring, setTouring] = useState(() => !readTourSeen() && tabFromHash() === "overview");
+  // Opens by itself on a first visit, a moment after Overview appears so the page is seen first.
+  // Deep links to other tabs aren't interrupted.
+  const [touring, setTouring] = useState(false);
+  useEffect(() => {
+    if (tab !== "overview" || readTourSeen()) return;
+    const timer = setTimeout(() => setTouring(true), TOUR_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [tab]);
   useEffect(() => {
     if (touring) markTourSeen();
   }, [touring]);
