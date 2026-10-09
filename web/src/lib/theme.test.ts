@@ -1,6 +1,66 @@
+// @vitest-environment happy-dom
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
+import { applyTheme, readTheme, THEME_KEY, writeTheme } from "./theme";
+
+const blocked = (): Storage => {
+  throw new DOMException("The operation is insecure.", "SecurityError");
+};
+const throwing = {
+  getItem: () => {
+    throw new Error("denied");
+  },
+  setItem: () => {
+    throw new Error("QuotaExceededError");
+  },
+} as unknown as Storage;
+
+beforeEach(() => {
+  localStorage.clear();
+  applyTheme("system");
+});
+
+describe("stored theme preference", () => {
+  it("defaults to system", () => {
+    expect(readTheme()).toBe("system");
+  });
+
+  it("round-trips each choice", () => {
+    for (const pref of ["light", "dark", "system"] as const) {
+      writeTheme(pref);
+      expect(localStorage.getItem(THEME_KEY)).toBe(pref);
+      expect(readTheme()).toBe(pref);
+    }
+  });
+
+  it("ignores values it does not know", () => {
+    localStorage.setItem(THEME_KEY, "sepia");
+    expect(readTheme()).toBe("system");
+  });
+
+  it("falls back to system when storage throws", () => {
+    expect(readTheme(blocked)).toBe("system");
+    expect(readTheme(() => throwing)).toBe("system");
+    expect(() => writeTheme("dark", blocked)).not.toThrow();
+    expect(() => writeTheme("dark", () => throwing)).not.toThrow();
+  });
+});
+
+describe("applyTheme", () => {
+  it("sets data-theme and color-scheme, and clears both for system", () => {
+    const root = document.documentElement;
+    applyTheme("dark");
+    expect(root.dataset.theme).toBe("dark");
+    expect(root.style.colorScheme).toBe("dark");
+    applyTheme("light");
+    expect(root.dataset.theme).toBe("light");
+    expect(root.style.colorScheme).toBe("light");
+    applyTheme("system");
+    expect(root.hasAttribute("data-theme")).toBe(false);
+    expect(root.style.colorScheme).toBe("");
+  });
+});
 
 // The dark tokens appear twice (OS-driven and chosen), since CSS cannot share one block
 // between a media query and a plain rule. These checks keep them identical.
