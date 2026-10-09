@@ -99,7 +99,7 @@ svg [data-tip]:hover rect, svg [data-tip].tipped rect { stroke: var(--accent); s
 #tipbox .say::before { content: "What it says here: "; color: var(--tip-muted); }
 
 .app { max-width: 1320px; margin: 0 auto; padding-block: 14px 40px; display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 14px; }
-.status { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+.status { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
 .brand { display: flex; align-items: center; gap: 9px; font: 600 0.95rem var(--mono); margin-right: auto; }
 .brand svg { flex: none; }
 .stat { display: inline-flex; align-items: center; gap: 7px; font-size: 0.82rem; color: var(--muted); }
@@ -154,6 +154,12 @@ section[data-panel] > * + * { margin-top: 14px; }
 .seg button { border: 0; background: var(--panel); padding: 4px 11px; font-size: 0.8rem; cursor: pointer; color: var(--muted); }
 .seg button + button { border-left: 1px solid var(--line); }
 .seg button[aria-pressed="true"] { background: var(--sunk); color: var(--ink); font-weight: 600; }
+.seg.theme { margin-left: auto; }
+.seg.theme button { display: inline-flex; align-items: center; padding: 4px 7px; }
+.seg.theme svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.seg.theme button:hover { color: var(--accent); }
+.seg.theme button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+.seg.theme button:focus-visible { outline-offset: -3px; outline-color: var(--ink); }
 .link { background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; font-size: 0.82rem; }
 .empty { color: var(--muted); font-size: 0.84rem; padding: 6px 0; }
 .foot { color: var(--muted); font-size: 0.8rem; }

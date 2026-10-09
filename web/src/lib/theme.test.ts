@@ -1,7 +1,10 @@
 // @vitest-environment happy-dom
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { createElement } from "react";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { ThemeSwitch } from "../components/ThemeSwitch";
 import { applyTheme, readTheme, THEME_KEY, writeTheme } from "./theme";
 
 const blocked = (): Storage => {
@@ -20,6 +23,7 @@ beforeEach(() => {
   localStorage.clear();
   applyTheme("system");
 });
+afterEach(cleanup);
 
 describe("stored theme preference", () => {
   it("defaults to system", () => {
@@ -59,6 +63,28 @@ describe("applyTheme", () => {
     applyTheme("system");
     expect(root.hasAttribute("data-theme")).toBe(false);
     expect(root.style.colorScheme).toBe("");
+  });
+});
+
+describe("ThemeSwitch", () => {
+  it("marks the current choice, applies a new one and saves it", () => {
+    render(createElement(ThemeSwitch));
+    expect(screen.getByRole("group", { name: "Color theme" })).toBeTruthy();
+    const system = screen.getByRole("button", { name: "System theme" });
+    const dark = screen.getByRole("button", { name: "Dark theme" });
+    expect(system.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(dark);
+    expect(dark.getAttribute("aria-pressed")).toBe("true");
+    expect(system.getAttribute("aria-pressed")).toBe("false");
+    expect(document.documentElement.dataset.theme).toBe("dark");
+    expect(localStorage.getItem(THEME_KEY)).toBe("dark");
+  });
+
+  it("starts from the saved choice", () => {
+    localStorage.setItem(THEME_KEY, "light");
+    render(createElement(ThemeSwitch));
+    expect(screen.getByRole("button", { name: "Light theme" }).getAttribute("aria-pressed")).toBe("true");
+    expect(document.documentElement.dataset.theme).toBe("light");
   });
 });
 

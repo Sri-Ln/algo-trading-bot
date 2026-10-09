@@ -3,6 +3,7 @@ import { regime } from "../content";
 import { nextScheduledRun } from "../lib/finance";
 import { duration, fmtDate, nyTime, pct, usd } from "../lib/format";
 import { RegimeChip, StatusBadge } from "./Chips";
+import { ThemeSwitch } from "./ThemeSwitch";
 import { tip } from "./Tip";
 
 export function Brand() {
@@ -90,6 +91,7 @@ export function StatusBar({ status, now }: { status: Status; now: Date }) {
       <span className="stat" {...tip("Mode", `${regime(status.regime).tip} Decided on the close of ${fmtDate(status.regime_date)}.`)}>
         mode <RegimeChip value={status.regime} />
       </span>
+      <ThemeSwitch />
     </header>
   );
 }
