@@ -113,13 +113,17 @@ svg [data-tip]:hover rect, svg [data-tip].tipped rect { stroke: var(--accent); s
 .led.dim { background: var(--faint); box-shadow: 0 0 0 3px color-mix(in oklab, var(--faint) 22%, transparent); }
 
 nav.side { display: flex; flex-direction: column; gap: 6px; align-self: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--status-h, 46px) + 28px); }
-nav.side button { position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; gap: 10px; text-align: left; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; font-weight: 500; transition: color 0.25s ease; }
-nav.side button::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); z-index: -1; transition: width 0.25s ease; }
-nav.side button[aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
-nav.side button[aria-selected="true"]::before { width: 3px; }
-nav.side button:hover, nav.side button:focus-visible { color: var(--on-accent); }
-nav.side button:hover::before, nav.side button:focus-visible::before { width: 100%; }
-@media (prefers-reduced-motion: reduce) { nav.side button, nav.side button::before { transition: none; } }
+nav.side [role="tab"] { position: relative; isolation: isolate; overflow: hidden; display: flex; align-items: center; gap: 10px; text-align: left; padding: 8px 10px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; font-weight: 500; transition: color 0.25s ease; }
+nav.side [role="tab"]::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 0; background: var(--accent); z-index: -1; transition: width 0.25s ease; }
+nav.side [role="tab"][aria-selected="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+nav.side [role="tab"][aria-selected="true"]::before { width: 3px; }
+nav.side [role="tab"]:hover, nav.side [role="tab"]:focus-visible { color: var(--on-accent); }
+nav.side [role="tab"]:hover::before, nav.side [role="tab"]:focus-visible::before { width: 100%; }
+@media (prefers-reduced-motion: reduce) { nav.side [role="tab"], nav.side [role="tab"]::before { transition: none; } }
+nav.side .tabs { display: flex; flex-direction: column; gap: 6px; }
+.tour-btn { display: flex; align-items: center; gap: 9px; padding: 7px 10px; border: 1px dashed var(--line); border-radius: 6px; background: transparent; color: var(--muted); font: 500 0.84rem var(--sans); text-align: left; cursor: pointer; }
+.tour-btn svg { flex: none; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
+.tour-btn:hover, .tour-btn:focus-visible { color: var(--accent); border: 1px solid var(--accent); }
 nav.side .sep { height: 1px; background: var(--line); margin: 10px 4px; }
 nav.side .help { font-size: 0.78rem; color: var(--muted); padding: 0 10px; }
 nav.side .help a { color: var(--muted); }
@@ -323,13 +327,33 @@ td.sans { font-family: var(--sans); }
 }
 @media (max-width: 760px) {
   .app { grid-template-columns: minmax(0, 1fr); }
-  nav.side { position: static; flex-direction: row; overflow-x: auto; gap: 6px; }
-  nav.side button { flex: none; }
+  nav.side { position: static; flex-direction: row; align-items: center; gap: 6px; }
+  nav.side .tabs { flex-direction: row; overflow-x: auto; flex: 1 1 auto; min-width: 0; }
+  nav.side [role="tab"] { flex: none; }
+  .tour-btn { flex: none; padding: 8px; }
+  .tour-btn .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   nav.side .sep, nav.side .help { display: none; }
   .step { grid-template-columns: 14px minmax(0, 1fr) 5ch 14px; }
   .step .name { grid-column: 2 / -1; }
   .step .detail { grid-column: 2 / 3; }
 }
+
+/* product tour: a dimmed page with one section cut out and outlined, and a step card */
+.tour { position: fixed; inset: 0; z-index: 60; }
+.tour-block { position: absolute; inset: 0; }
+.tour-hole { position: fixed; border-radius: 10px; outline: 2px dashed var(--accent); box-shadow: 0 0 0 200vmax rgb(5 9 15 / 0.6); pointer-events: none; }
+.tour-hole.none { outline: none; }
+.tour-card { position: fixed; width: min(340px, calc(100vw - 24px)); display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 32px rgb(0 0 0 / 0.3); }
+.tour-text { display: flex; flex-direction: column; gap: 6px; animation: tourText 0.3s ease-out; }
+@keyframes tourText { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.tour-count { font: 500 0.72rem var(--mono); color: var(--muted); letter-spacing: 0.04em; }
+.tour-card h2 { font-size: 1rem; }
+.tour-card p { color: var(--muted); font-size: 0.86rem; }
+.tour-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+.tour-actions .link { margin-right: auto; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+.btn.primary:hover { color: var(--on-accent); filter: brightness(1.08); }
+@media (prefers-reduced-motion: reduce) { .tour-text { animation: none; } }
 
 /* loading skeletons */
 .bone {

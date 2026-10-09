@@ -3,7 +3,9 @@ import { loadSnapshot, type Snapshot } from "./api/client";
 import { ErrorCard, PageSkeleton } from "./components/Skeleton";
 import { StatusBar } from "./components/StatusBar";
 import { TipLayer, tip } from "./components/Tip";
+import { Tour } from "./components/Tour";
 import { reprice } from "./lib/finance";
+import { markTourSeen, readTourSeen } from "./lib/tour";
 import { useAsync } from "./lib/useAsync";
 import { Backtests } from "./tabs/Backtests";
 import { Decisions, type Selection } from "./tabs/Decisions";
@@ -25,6 +27,9 @@ const tabFromHash = (): Tab => {
   return (TABS.find(([t]) => t === h)?.[0] ?? "overview") as Tab;
 };
 
+/** How long a first visit sees the page before the tour opens. */
+export const TOUR_DELAY_MS = 1200;
+
 export const REPO = "https://github.com/Sri-Ln/algo_trading";
 
 export function App() {
@@ -42,6 +47,17 @@ function Console({ data }: { data: Snapshot }) {
     data.runs[0] ? { src: "live", run: data.runs[0].trading_day, day: lastDay } : { src: "replay", run: null, day: lastDay },
   );
   const now = useMemo(() => new Date(), []);
+  // Opens by itself on a first visit, a moment after Overview appears so the page is seen first.
+  // Deep links to other tabs aren't interrupted.
+  const [touring, setTouring] = useState(false);
+  useEffect(() => {
+    if (tab !== "overview" || readTourSeen()) return;
+    const timer = setTimeout(() => setTouring(true), TOUR_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [tab]);
+  useEffect(() => {
+    if (touring) markTourSeen();
+  }, [touring]);
 
   const show = useCallback((t: Tab) => {
     setTab(t);
@@ -52,7 +68,7 @@ function Console({ data }: { data: Snapshot }) {
   useEffect(() => {
     const onHash = () => setTab(tabFromHash());
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as Element).matches("input, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (touring || (e.target as Element).matches("input, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
       const t = TABS[Number(e.key) - 1]?.[0];
       if (t) show(t);
     };
@@ -62,7 +78,7 @@ function Console({ data }: { data: Snapshot }) {
       removeEventListener("hashchange", onHash);
       document.removeEventListener("keydown", onKey);
     };
-  }, [show]);
+  }, [show, touring]);
 
   const equity = useMemo(() => reprice(data.backtest, cost), [data.backtest, cost]);
   const openDay = useCallback(
@@ -76,13 +92,30 @@ function Console({ data }: { data: Snapshot }) {
   return (
     <div className="app">
       <StatusBar status={data.status} now={now} />
-      <nav className="side" role="tablist" aria-label="Sections">
-        {TABS.map(([t, label, help]) => (
-          <button key={t} role="tab" aria-selected={tab === t} onClick={() => show(t)} {...tip(label, help)}>
-            {label}
-          </button>
-        ))}
+      <nav className="side">
+        <div className="tabs" role="tablist" aria-label="Sections" data-tour="tabs">
+          {TABS.map(([t, label, help]) => (
+            <button key={t} role="tab" aria-selected={tab === t} onClick={() => show(t)} {...tip(label, help)}>
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="sep" />
+        <button
+          type="button"
+          className="tour-btn"
+          data-tour="tour"
+          onClick={() => {
+            show("overview");
+            setTouring(true);
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.5" />
+            <path d="M10.6 5.4 9.1 9.1 5.4 10.6 6.9 6.9z" />
+          </svg>
+          <span className="lbl">Product tour</span>
+        </button>
         <p className="help">
           <a href={REPO}>Source on GitHub</a>
         </p>
@@ -99,6 +132,7 @@ function Console({ data }: { data: Snapshot }) {
         {tab === "system" && <System data={data} now={now} />}
       </main>
       <TipLayer />
+      {touring && <Tour onClose={() => setTouring(false)} />}
     </div>
   );
 }

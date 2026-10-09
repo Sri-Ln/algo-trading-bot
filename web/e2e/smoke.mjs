@@ -25,6 +25,9 @@ async function waitForServer() {
 const TABS = ["Overview", "Decisions", "Backtests", "Live", "System"];
 const errors = [];
 
+// Pages for the other checks start with the tour already seen, so it doesn't cover them.
+const skipTour = (target) => target.addInitScript(() => localStorage.setItem("tour", "seen"));
+
 const DARK_BG = "#0a0e14";
 const LIGHT_BG = "#f2f4f7";
 
@@ -33,6 +36,7 @@ const LIGHT_BG = "#f2f4f7";
 async function checkSticky(browser, name, viewport) {
   const fail = (msg) => errors.push(`sticky ${name}: ${msg}`);
   const page = await browser.newPage({ viewport });
+  await skipTour(page);
   page.on("pageerror", (e) => fail(e.message));
   await page.goto(`http://localhost:${PORT}/#backtests`);
   await page.getByRole("heading", { level: 1, name: "Backtests" }).waitFor();
@@ -52,11 +56,122 @@ async function checkSticky(browser, name, viewport) {
   await page.close();
 }
 
+// The product tour: opens by itself a moment into a first visit, travels smoothly between the
+// Overview sections with the rest of the page dimmed and blocked, stays closed on the next
+// visit, and replays from its button (Next with the arrow key, Esc and Skip to close).
+async function checkTour(browser, name, viewport) {
+  const fail = (msg) => errors.push(`tour ${name}: ${msg}`);
+  const context = await browser.newContext({ viewport, colorScheme: "light" });
+  const page = await context.newPage();
+  page.on("pageerror", (e) => fail(e.message));
+  page.on("console", (m) => m.type() === "error" && fail(m.text()));
+  const dialog = page.getByRole("dialog");
+  const tourButton = page.getByRole("button", { name: "Product tour" });
+  const settled = () => page.waitForFunction(() => document.querySelector(".tour-card")?.dataset.settled === "true", null, { timeout: 5000 });
+  const holeAt = () => page.evaluate(() => document.querySelector(".tour-hole").getBoundingClientRect().toJSON());
+
+  await page.goto(`http://localhost:${PORT}/`);
+  await page.getByRole("heading", { level: 1, name: "Overview" }).waitFor();
+  if (await dialog.count()) fail("the tour opened the moment the page appeared");
+  await dialog.waitFor();
+  if ((await page.evaluate(() => localStorage.getItem("tour"))) !== "seen") fail("the first visit was not remembered");
+  const total = Number((await dialog.locator(".tour-count").textContent()).split(" of ")[1]);
+  for (let i = 1; i <= total; i++) {
+    await settled();
+    const s = await page.evaluate(() => {
+      const box = (r) => ({ top: r.top, left: r.left, bottom: r.bottom, right: r.right, height: r.height });
+      const card = document.querySelector(".tour-card");
+      const target = card.dataset.target;
+      return {
+        target,
+        count: card.querySelector(".tour-count").textContent,
+        el: box(document.querySelector(`[data-tour="${target}"]`).getBoundingClientRect()),
+        hole: box(document.querySelector(".tour-hole").getBoundingClientRect()),
+        card: box(card.getBoundingClientRect()),
+        corner: document.elementFromPoint(2, innerHeight - 2)?.className,
+        // Space below the sticky status bar, unless the section is in the bar.
+        room: document.querySelector(".status").contains(document.querySelector(`[data-tour="${target}"]`))
+          ? innerHeight
+          : innerHeight - document.querySelector(".status").getBoundingClientRect().bottom,
+      };
+    });
+    const at = `step ${i} (${s.target})`;
+    if (s.count !== `${i} of ${total}`) fail(`${at}: counter reads ${s.count}`);
+    const { el, hole, card } = s;
+    const around = hole.top <= el.top + 1 && hole.left <= el.left + 1 && hole.bottom >= el.bottom - 1 && hole.right >= el.right - 1;
+    if (!around || el.top - hole.top > 10) fail(`${at}: outline ${JSON.stringify(hole)} is not around the section ${JSON.stringify(el)}`);
+    if (el.height < viewport.height && (el.top < 0 || el.bottom > viewport.height)) fail(`${at}: section is not fully on screen`);
+    if (card.top < 0 || card.left < 0 || card.bottom > viewport.height || card.right > viewport.width) fail(`${at}: card is off screen`);
+    const roomy = el.height + card.height + 40 < s.room;
+    if (roomy && card.top < el.bottom && card.bottom > el.top && card.left < el.right && card.right > el.left) fail(`${at}: card covers the section`);
+    if (s.corner !== "tour-block") fail(`${at}: the page behind the tour is clickable (${s.corner})`);
+    await page.screenshot({ path: `${OUT}/tour-${name}-${i}-${s.target}.png` });
+    const from = await holeAt();
+    await dialog.getByRole("button", { name: i === total ? "Done" : "Next" }).click();
+    // Mid-move, the spotlight is between the two sections rather than at either.
+    if (i === 2) {
+      await page.waitForTimeout(200);
+      const mid = await holeAt();
+      await settled();
+      const to = await holeAt();
+      const off = (a, b) => Math.abs(a.top - b.top) + Math.abs(a.left - b.left) + Math.abs(a.width - b.width) + Math.abs(a.height - b.height);
+      if (off(mid, from) < 8 || off(mid, to) < 8) fail(`the spotlight jumped instead of moving (from ${off(mid, from)}px, to ${off(mid, to)}px)`);
+    }
+  }
+  if (await dialog.count()) fail("Done did not close the tour");
+
+  await page.reload();
+  await page.getByRole("heading", { level: 1, name: "Overview" }).waitFor();
+  await page.waitForTimeout(400);
+  if (await dialog.count()) fail("the tour opened again on a return visit");
+
+  await page.getByRole("tab", { name: "Live" }).click();
+  await tourButton.click();
+  await dialog.waitFor();
+  if (!(await page.getByRole("heading", { level: 1, name: "Overview" }).count())) fail("replaying did not go to Overview");
+  await page.keyboard.press("ArrowRight");
+  if ((await dialog.locator(".tour-count").textContent()) !== `2 of ${total}`) fail("ArrowRight did not move to step 2");
+  await page.keyboard.press("Escape");
+  if (await dialog.count()) fail("Escape did not close the tour");
+  if (!(await tourButton.evaluate((b) => b === document.activeElement))) fail("focus did not return to the tour button");
+
+  // With reduced motion the spotlight jumps straight to the next section.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await tourButton.click();
+  await dialog.waitFor();
+  await dialog.getByRole("button", { name: "Next" }).click();
+  await page.waitForTimeout(60);
+  if ((await page.evaluate(() => document.querySelector(".tour-card").dataset.settled)) !== "true") fail("reduced motion still animates");
+  await page.keyboard.press("Escape");
+
+  await page.goto(`http://localhost:${PORT}/`);
+  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "no-preference" });
+  await tourButton.click();
+  await dialog.waitFor();
+  await settled();
+  // Once landed, the tour does no work (it used to redraw every frame, which costs battery).
+  const writes = await page.evaluate(
+    () =>
+      new Promise((done) => {
+        let n = 0;
+        const watch = new MutationObserver((m) => (n += m.length));
+        watch.observe(document.querySelector(".tour"), { attributes: true, subtree: true });
+        setTimeout(() => (watch.disconnect(), done(n)), 500);
+      }),
+  );
+  if (writes) fail(`the settled tour still changed the page ${writes} times in 0.5s`);
+  await page.screenshot({ path: `${OUT}/tour-${name}-dark.png` });
+  await dialog.getByRole("button", { name: "Skip tour" }).click();
+  if (await dialog.count()) fail("Skip did not close the tour");
+  await context.close();
+}
+
 // The theme switch: a choice survives a reload with no light frame first, System follows
 // the OS live, and colors drawn from CSS variables (charts, regime bands) repaint without a reload.
 async function checkTheme(browser, name, viewport) {
   const fail = (msg) => errors.push(`theme ${name}: ${msg}`);
   const context = await browser.newContext({ viewport, colorScheme: "light" });
+  await skipTour(context);
   const page = await context.newPage();
   page.on("pageerror", (e) => fail(e.message));
   page.on("console", (m) => m.type() === "error" && fail(m.text()));
@@ -149,6 +264,7 @@ try {
     ["phone", { width: 400, height: 860 }, "light"],
   ]) {
     const page = await browser.newPage({ viewport, colorScheme: scheme });
+    await skipTour(page);
     page.on("pageerror", (e) => errors.push(`${name}: ${e.message}`));
     page.on("console", (m) => m.type() === "error" && errors.push(`${name}: ${m.text()}`));
     await page.goto(`http://localhost:${PORT}/`);
@@ -175,6 +291,7 @@ try {
   ]) {
     await checkTheme(browser, name, viewport);
     await checkSticky(browser, name, viewport);
+    await checkTour(browser, name, viewport);
   }
   await browser.close();
 } finally {

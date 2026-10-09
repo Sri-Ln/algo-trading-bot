@@ -33,7 +33,7 @@ export function Overview({ data, equity, now, onGoto, onPick }: Props) {
       </div>
       <Kpis data={data} years={`${firstYear}–${lastYear}`} />
       <div className="grid g32">
-        <div className="card">
+        <div className="card" data-tour="latest-run">
           <div className="card-h">
             <h3 {...tip("Latest run", "The most recent daily run of the bot, step by step. Each line is one stage of the pipeline, with how long it took and whether it succeeded.")}>
               Latest run{latest && ` · ${latest.trading_day}`}
@@ -57,7 +57,7 @@ export function Overview({ data, equity, now, onGoto, onPick }: Props) {
             />
           )}
         </div>
-        <div className="card">
+        <div className="card" data-tour="services">
           <h3 {...tip("Services", "The parts the bot depends on, as seen by its latest run. In engineering this is a status page.")}>Services</h3>
           {runLoading ? (
             <Pending label="Loading service status">
@@ -72,7 +72,7 @@ export function Overview({ data, equity, now, onGoto, onPick }: Props) {
           <Events data={data} />
         </div>
       </div>
-      <div className="card">
+      <div className="card" data-tour="backtest">
         <div className="card-h">
           <h3
             {...tip(
@@ -112,7 +112,7 @@ function Kpis({ data, years }: { data: Snapshot; years: string }) {
   const b = backtest.spy.full.sharpe;
   const counts = status.runs;
   return (
-    <div className="grid g4">
+    <div className="grid g4" data-tour="kpis">
       <div
         className="card kpi"
         {...tip(
