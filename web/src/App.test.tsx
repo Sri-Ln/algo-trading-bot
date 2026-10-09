@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
+import { TOUR_KEY } from "./lib/tour";
 
 // Renders the whole console against the API files written by
 // `algo-trading export --out web/public`.
@@ -29,7 +30,10 @@ const fromFiles = async (url: string) => {
   return new Response(readFileSync(path), { status: 200 });
 };
 
-beforeEach(() => vi.stubGlobal("fetch", fromFiles));
+beforeEach(() => {
+  vi.stubGlobal("fetch", fromFiles);
+  localStorage.setItem(TOUR_KEY, "seen");
+});
 afterEach(cleanup);
 
 const errors: unknown[] = [];
@@ -80,5 +84,51 @@ describe("console", () => {
     expect(screen.getByText("/api/status.json")).toBeTruthy();
 
     expect(errors).toEqual([]);
+  });
+});
+
+describe("product tour", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    history.replaceState(null, "", location.pathname);
+  });
+
+  it("opens on a first visit and not on the next", async () => {
+    render(<App />);
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog.textContent).toContain("Status bar");
+    expect(localStorage.getItem(TOUR_KEY)).toBe("seen");
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Skip tour" })));
+    expect(screen.queryByRole("dialog")).toBeNull();
+
+    cleanup();
+    render(<App />);
+    await screen.findByRole("heading", { level: 1, name: "Overview" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("waits when the first visit is a link to another tab", async () => {
+    history.replaceState(null, "", "#backtests");
+    render(<App />);
+    await screen.findByRole("heading", { level: 1, name: "Backtests" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(localStorage.getItem(TOUR_KEY)).toBeNull();
+  });
+
+  it("replays from the Product tour button, on Overview", async () => {
+    localStorage.setItem(TOUR_KEY, "seen");
+    render(<App />);
+    await screen.findByRole("heading", { level: 1, name: "Overview" });
+    await open("Live");
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Product tour" })));
+    expect(await screen.findByRole("heading", { level: 1, name: "Overview" })).toBeTruthy();
+    expect(screen.getByRole("dialog").textContent).toContain("1 of 8");
+  });
+
+  it("pauses the 1-5 tab shortcuts while open", async () => {
+    render(<App />);
+    await screen.findByRole("dialog");
+    await act(async () => fireEvent.keyDown(document, { key: "3" }));
+    expect(screen.getByRole("heading", { level: 1, name: "Overview" })).toBeTruthy();
   });
 });

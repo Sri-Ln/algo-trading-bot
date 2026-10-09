@@ -25,6 +25,9 @@ async function waitForServer() {
 const TABS = ["Overview", "Decisions", "Backtests", "Live", "System"];
 const errors = [];
 
+// Pages for the other checks start with the tour already seen, so it doesn't cover them.
+const skipTour = (target) => target.addInitScript(() => localStorage.setItem("tour", "seen"));
+
 const DARK_BG = "#0a0e14";
 const LIGHT_BG = "#f2f4f7";
 
@@ -33,6 +36,7 @@ const LIGHT_BG = "#f2f4f7";
 async function checkSticky(browser, name, viewport) {
   const fail = (msg) => errors.push(`sticky ${name}: ${msg}`);
   const page = await browser.newPage({ viewport });
+  await skipTour(page);
   page.on("pageerror", (e) => fail(e.message));
   await page.goto(`http://localhost:${PORT}/#backtests`);
   await page.getByRole("heading", { level: 1, name: "Backtests" }).waitFor();
@@ -52,11 +56,83 @@ async function checkSticky(browser, name, viewport) {
   await page.close();
 }
 
+// The product tour: opens by itself on a first visit, outlines each Overview section in turn
+// with the rest of the page dimmed and blocked, stays closed on the next visit, and replays
+// from its button (Next with the arrow key, Esc and Skip to close).
+async function checkTour(browser, name, viewport) {
+  const fail = (msg) => errors.push(`tour ${name}: ${msg}`);
+  const context = await browser.newContext({ viewport, colorScheme: "light", reducedMotion: "reduce" });
+  const page = await context.newPage();
+  page.on("pageerror", (e) => fail(e.message));
+  page.on("console", (m) => m.type() === "error" && fail(m.text()));
+  const dialog = page.getByRole("dialog");
+  const tourButton = page.getByRole("button", { name: "Product tour" });
+
+  await page.goto(`http://localhost:${PORT}/`);
+  await dialog.waitFor();
+  if ((await page.evaluate(() => localStorage.getItem("tour"))) !== "seen") fail("the first visit was not remembered");
+  const total = Number((await dialog.locator(".tour-count").textContent()).split(" of ")[1]);
+  for (let i = 1; i <= total; i++) {
+    await page.waitForTimeout(150);
+    const s = await page.evaluate(() => {
+      const box = (r) => ({ top: r.top, left: r.left, bottom: r.bottom, right: r.right, height: r.height });
+      const card = document.querySelector(".tour-card");
+      const target = card.dataset.target;
+      return {
+        target,
+        count: card.querySelector(".tour-count").textContent,
+        el: box(document.querySelector(`[data-tour="${target}"]`).getBoundingClientRect()),
+        hole: box(document.querySelector(".tour-hole").getBoundingClientRect()),
+        card: box(card.getBoundingClientRect()),
+        corner: document.elementFromPoint(2, innerHeight - 2)?.className,
+      };
+    });
+    const at = `step ${i} (${s.target})`;
+    if (s.count !== `${i} of ${total}`) fail(`${at}: counter reads ${s.count}`);
+    const { el, hole, card } = s;
+    const around = hole.top <= el.top + 1 && hole.left <= el.left + 1 && hole.bottom >= el.bottom - 1 && hole.right >= el.right - 1;
+    if (!around || el.top - hole.top > 10) fail(`${at}: outline ${JSON.stringify(hole)} is not around the section ${JSON.stringify(el)}`);
+    if (el.height < viewport.height && (el.top < 0 || el.bottom > viewport.height)) fail(`${at}: section is not fully on screen`);
+    if (card.top < 0 || card.left < 0 || card.bottom > viewport.height || card.right > viewport.width) fail(`${at}: card is off screen`);
+    const roomy = el.height + card.height + 40 < viewport.height;
+    if (roomy && card.top < el.bottom && card.bottom > el.top && card.left < el.right && card.right > el.left) fail(`${at}: card covers the section`);
+    if (s.corner !== "tour-block") fail(`${at}: the page behind the tour is clickable (${s.corner})`);
+    await page.screenshot({ path: `${OUT}/tour-${name}-${i}-${s.target}.png` });
+    await dialog.getByRole("button", { name: i === total ? "Done" : "Next" }).click();
+  }
+  if (await dialog.count()) fail("Done did not close the tour");
+
+  await page.reload();
+  await page.getByRole("heading", { level: 1, name: "Overview" }).waitFor();
+  await page.waitForTimeout(400);
+  if (await dialog.count()) fail("the tour opened again on a return visit");
+
+  await page.getByRole("tab", { name: "Live" }).click();
+  await tourButton.click();
+  await dialog.waitFor();
+  if (!(await page.getByRole("heading", { level: 1, name: "Overview" }).count())) fail("replaying did not go to Overview");
+  await page.keyboard.press("ArrowRight");
+  if ((await dialog.locator(".tour-count").textContent()) !== `2 of ${total}`) fail("ArrowRight did not move to step 2");
+  await page.keyboard.press("Escape");
+  if (await dialog.count()) fail("Escape did not close the tour");
+  if (!(await tourButton.evaluate((b) => b === document.activeElement))) fail("focus did not return to the tour button");
+
+  await page.emulateMedia({ colorScheme: "dark" });
+  await tourButton.click();
+  await dialog.waitFor();
+  await page.waitForTimeout(150);
+  await page.screenshot({ path: `${OUT}/tour-${name}-dark.png` });
+  await dialog.getByRole("button", { name: "Skip tour" }).click();
+  if (await dialog.count()) fail("Skip did not close the tour");
+  await context.close();
+}
+
 // The theme switch: a choice survives a reload with no light frame first, System follows
 // the OS live, and colors drawn from CSS variables (charts, regime bands) repaint without a reload.
 async function checkTheme(browser, name, viewport) {
   const fail = (msg) => errors.push(`theme ${name}: ${msg}`);
   const context = await browser.newContext({ viewport, colorScheme: "light" });
+  await skipTour(context);
   const page = await context.newPage();
   page.on("pageerror", (e) => fail(e.message));
   page.on("console", (m) => m.type() === "error" && fail(m.text()));
@@ -149,6 +225,7 @@ try {
     ["phone", { width: 400, height: 860 }, "light"],
   ]) {
     const page = await browser.newPage({ viewport, colorScheme: scheme });
+    await skipTour(page);
     page.on("pageerror", (e) => errors.push(`${name}: ${e.message}`));
     page.on("console", (m) => m.type() === "error" && errors.push(`${name}: ${m.text()}`));
     await page.goto(`http://localhost:${PORT}/`);
@@ -175,6 +252,7 @@ try {
   ]) {
     await checkTheme(browser, name, viewport);
     await checkSticky(browser, name, viewport);
+    await checkTour(browser, name, viewport);
   }
   await browser.close();
 } finally {

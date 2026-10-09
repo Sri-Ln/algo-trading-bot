@@ -26,7 +26,7 @@ const OPTIONS: [ThemePref, string][] = [
 export function ThemeSwitch() {
   const { pref, setPref } = useTheme();
   return (
-    <span className="seg theme" role="group" aria-label="Color theme">
+    <span className="seg theme" role="group" aria-label="Color theme" data-tour="theme">
       {OPTIONS.map(([value, label]) => (
         <button key={value} type="button" aria-pressed={pref === value} aria-label={`${label} theme`} onClick={() => setPref(value)}>
           <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">

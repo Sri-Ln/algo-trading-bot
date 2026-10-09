@@ -58,7 +58,7 @@ export function StatusBar({ status, now }: { status: Status; now: Date }) {
     };
   }, []);
   return (
-    <header className="status" ref={ref}>
+    <header className="status" ref={ref} data-tour="status">
       <Brand />
       <span className="stat" {...tip("Bot health", h.tip)}>
         <span className={`led ${h.led}`} />
