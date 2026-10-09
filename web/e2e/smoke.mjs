@@ -8,7 +8,8 @@ const PORT = 4173;
 const OUT = "e2e/screenshots";
 mkdirSync(OUT, { recursive: true });
 
-const server = spawn("npx", ["vite", "preview", "--port", String(PORT), "--strictPort"], { stdio: "inherit" });
+// Run Vite's own entry point, not npx, so kill() stops the server rather than a wrapper.
+const server = spawn(process.execPath, ["node_modules/vite/bin/vite.js", "preview", "--port", String(PORT), "--strictPort"], { stdio: "inherit" });
 const stop = () => server.kill();
 
 async function waitForServer() {
