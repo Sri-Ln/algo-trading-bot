@@ -65,7 +65,8 @@ type Point = { top: number; left: number };
  */
 export type Motion = "glide" | "stalk" | "skitter" | "instant";
 const MOTIONS: Record<Motion, { ms: number; wait: number; ease: (t: number) => number }> = {
-  glide: { ms: 450, wait: 0, ease: (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2) },
+  // Ease-out, so it answers the click at once and slows as it lands.
+  glide: { ms: 450, wait: 0, ease: (t) => 1 - (1 - t) ** 3 },
   stalk: { ms: 800, wait: 220, ease: (t) => (t < 0.5 ? 16 * t ** 5 : 1 - (-2 * t + 2) ** 5 / 2) },
   skitter: { ms: 320, wait: 0, ease: (t) => 1 + 2.4 * (t - 1) ** 3 + 1.4 * (t - 1) ** 2 },
   instant: { ms: 0, wait: 0, ease: () => 1 },
