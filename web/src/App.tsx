@@ -76,12 +76,14 @@ function Console({ data }: { data: Snapshot }) {
   return (
     <div className="app">
       <StatusBar status={data.status} now={now} />
-      <nav className="side" role="tablist" aria-label="Sections">
-        {TABS.map(([t, label, help]) => (
-          <button key={t} role="tab" aria-selected={tab === t} onClick={() => show(t)} {...tip(label, help)}>
-            {label}
-          </button>
-        ))}
+      <nav className="side">
+        <div className="tabs" role="tablist" aria-label="Sections" data-tour="tabs">
+          {TABS.map(([t, label, help]) => (
+            <button key={t} role="tab" aria-selected={tab === t} onClick={() => show(t)} {...tip(label, help)}>
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="sep" />
         <p className="help">
           <a href={REPO}>Source on GitHub</a>
