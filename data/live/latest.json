@@ -1,130 +1,32 @@
 {
-  "account": {
-    "cash": 1778.93,
-    "equity": 101527.33
-  },
+  "account": null,
   "api_calls": [
     {
-      "at": "2026-10-09T18:57:47.879149+00:00",
-      "elapsed_ms": 135.55725200001234,
+      "at": "2026-10-12T21:51:03.805228+00:00",
+      "elapsed_ms": 214.51133899999775,
       "method": "GET",
       "path": "/v2/clock",
       "status": 200
-    },
-    {
-      "at": "2026-10-09T18:57:52.353781+00:00",
-      "elapsed_ms": 53.29770800000233,
-      "method": "GET",
-      "path": "/v2/account",
-      "status": 200
-    },
-    {
-      "at": "2026-10-09T18:57:52.395798+00:00",
-      "elapsed_ms": 41.6005629999745,
-      "method": "GET",
-      "path": "/v2/positions",
-      "status": 200
     }
   ],
-  "decision": {
-    "checks": [
-      {
-        "gap": -0.03400924008087036,
-        "left": "AGG",
-        "left_return": -0.02560491465539083,
-        "lookback": 60,
-        "passed": false,
-        "right": "BIL",
-        "right_return": 0.00840432542547953,
-        "rule": 1
-      },
-      {
-        "gap": -0.035019501149145316,
-        "left": "TLT",
-        "left_return": -0.03214131417272392,
-        "lookback": 20,
-        "passed": true,
-        "right": "BIL",
-        "right_return": 0.002878186976421393,
-        "rule": 2
-      }
-    ],
-    "date": "2026-10-08",
-    "regime": "risk_off_rising",
-    "rsi": {
-      "QID": 42.006859432097485,
-      "TBF": 64.38796522533664
-    },
-    "weights": {
-      "QID": 0.5,
-      "UUP": 0.5
-    }
-  },
+  "decision": null,
   "dry_run": false,
   "error": null,
-  "finished_at": "2026-10-09T18:57:52.396514+00:00",
+  "finished_at": "2026-10-12T21:51:03.805459+00:00",
   "orders": [],
-  "positions": {
-    "QID": {
-      "market_value": 50202.7284,
-      "qty": 3916.0
-    },
-    "UUP": {
-      "market_value": 49545.675,
-      "qty": 1707.0
-    }
-  },
-  "started_at": "2026-10-09T18:57:47.743219+00:00",
-  "status": "ok",
+  "positions": {},
+  "started_at": "2026-10-12T21:51:03.590332+00:00",
+  "status": "skipped",
   "steps": [
     {
       "detail": {
-        "is_open": true,
-        "next_open": "2026-10-12T09:30:00-04:00"
+        "is_open": false,
+        "next_open": "2026-10-13T09:30:00-04:00"
       },
-      "ms": 136.13784799997575,
+      "ms": 215.0644510000035,
       "name": "check_clock",
-      "status": "ok"
-    },
-    {
-      "detail": {
-        "attempts": 1,
-        "last_bar": "2026-10-08",
-        "tickers": 15
-      },
-      "ms": 4420.270416999983,
-      "name": "fetch_bars",
-      "status": "ok"
-    },
-    {
-      "detail": {
-        "regime": "risk_off_rising",
-        "weights": {
-          "QID": 0.5,
-          "UUP": 0.5
-        }
-      },
-      "ms": 0.4891520000001037,
-      "name": "decide",
-      "status": "ok"
-    },
-    {
-      "detail": {
-        "drift": 0.017521652544196742,
-        "orders_needed": 0
-      },
-      "ms": 96.21296800003165,
-      "name": "reconcile",
-      "status": "ok"
-    },
-    {
-      "detail": {
-        "reason": "in sync"
-      },
-      "ms": 0.0019880000081684557,
-      "name": "submit_orders",
       "status": "skipped"
     }
   ],
-  "trading_day": "2026-10-09"
+  "trading_day": "2026-10-12"
 }
