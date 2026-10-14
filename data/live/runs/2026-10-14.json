@@ -1,0 +1,180 @@
+{
+  "account": {
+    "cash": 1778.93,
+    "equity": 104958.25
+  },
+  "api_calls": [
+    {
+      "at": "2026-10-14T18:09:38.128069+00:00",
+      "elapsed_ms": 20.96359699999084,
+      "method": "GET",
+      "path": "/v2/clock",
+      "status": 200
+    },
+    {
+      "at": "2026-10-14T18:09:41.972394+00:00",
+      "elapsed_ms": 37.37898099996073,
+      "method": "GET",
+      "path": "/v2/account",
+      "status": 200
+    },
+    {
+      "at": "2026-10-14T18:09:41.992364+00:00",
+      "elapsed_ms": 19.505820999938805,
+      "method": "GET",
+      "path": "/v2/positions",
+      "status": 200
+    },
+    {
+      "at": "2026-10-14T18:09:42.020030+00:00",
+      "elapsed_ms": 26.74885900000845,
+      "method": "POST",
+      "path": "/v2/orders",
+      "status": 200
+    },
+    {
+      "at": "2026-10-14T18:09:42.031780+00:00",
+      "elapsed_ms": 11.512111000001823,
+      "method": "POST",
+      "path": "/v2/orders",
+      "status": 200
+    },
+    {
+      "at": "2026-10-14T18:09:44.045907+00:00",
+      "elapsed_ms": 13.698684000019057,
+      "method": "GET",
+      "path": "/v2/orders/6aef4852-9f6f-4988-a76b-3ca4961beabd",
+      "status": 200
+    },
+    {
+      "at": "2026-10-14T18:09:46.062065+00:00",
+      "elapsed_ms": 15.733378000049925,
+      "method": "GET",
+      "path": "/v2/orders/c6e45cdd-7746-4923-98a3-5dedd8165954",
+      "status": 200
+    }
+  ],
+  "decision": {
+    "checks": [
+      {
+        "gap": -0.03140411288566747,
+        "left": "AGG",
+        "left_return": -0.02288937182743611,
+        "lookback": 60,
+        "passed": false,
+        "right": "BIL",
+        "right_return": 0.008514741058231357,
+        "rule": 1
+      },
+      {
+        "gap": -0.028069654886108686,
+        "left": "TLT",
+        "left_return": -0.025081939860593594,
+        "lookback": 20,
+        "passed": true,
+        "right": "BIL",
+        "right_return": 0.002987715025515092,
+        "rule": 2
+      }
+    ],
+    "date": "2026-10-13",
+    "regime": "risk_off_rising",
+    "rsi": {
+      "QID": 44.6394050604585,
+      "TBF": 60.44721581488522
+    },
+    "weights": {
+      "QID": 0.5,
+      "UUP": 0.5
+    }
+  },
+  "dry_run": false,
+  "error": null,
+  "finished_at": "2026-10-14T18:09:46.062360+00:00",
+  "orders": [
+    {
+      "client_order_id": "at-2026-10-14-QID-buy",
+      "filled_avg_price": 13.64,
+      "filled_qty": 56,
+      "order_id": "6aef4852-9f6f-4988-a76b-3ca4961beabd",
+      "qty": 56,
+      "side": "buy",
+      "status": "filled",
+      "symbol": "QID"
+    },
+    {
+      "client_order_id": "at-2026-10-14-UUP-buy",
+      "filled_avg_price": 29.17,
+      "filled_qty": 83,
+      "order_id": "c6e45cdd-7746-4923-98a3-5dedd8165954",
+      "qty": 83,
+      "side": "buy",
+      "status": "filled",
+      "symbol": "UUP"
+    }
+  ],
+  "positions": {
+    "QID": {
+      "market_value": 53394.66,
+      "qty": 3916.0
+    },
+    "UUP": {
+      "market_value": 49784.655,
+      "qty": 1707.0
+    }
+  },
+  "started_at": "2026-10-14T18:09:38.106795+00:00",
+  "status": "ok",
+  "steps": [
+    {
+      "detail": {
+        "is_open": true,
+        "next_open": "2026-10-15T09:30:00-04:00"
+      },
+      "ms": 21.431187999951362,
+      "name": "check_clock",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "attempts": 1,
+        "last_bar": "2026-10-13",
+        "tickers": 15
+      },
+      "ms": 3805.842861999963,
+      "name": "fetch_bars",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "regime": "risk_off_rising",
+        "weights": {
+          "QID": 0.5,
+          "UUP": 0.5
+        }
+      },
+      "ms": 0.645746000031977,
+      "name": "decide",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "drift": 0.0343946759783057,
+        "orders_needed": 2
+      },
+      "ms": 58.313250999958655,
+      "name": "reconcile",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "filled": 2,
+        "placed": 2
+      },
+      "ms": 4069.157766999979,
+      "name": "submit_orders",
+      "status": "ok"
+    }
+  ],
+  "trading_day": "2026-10-14"
+}
