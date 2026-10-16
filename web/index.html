@@ -14,14 +14,54 @@
       } catch (e) {}
     </script>
     <meta name="description" content="Ops console for a rules-based ETF rotation bot: live paper trading, decision traces and backtests." />
-    <title>algo-trading-bot</title>
+    <title>Algorithmic Trading Bot — Srikanth Lakshminarayan</title>
+    <link rel="canonical" href="https://tradingbot.srikanthsharma.me/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Algorithmic Trading Bot — Srikanth Lakshminarayan" />
+    <meta property="og:description" content="Ops console for a rules-based ETF rotation bot: live paper trading, decision traces and backtests." />
+    <meta property="og:url" content="https://tradingbot.srikanthsharma.me/" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Crect x='1' y='9' width='4' height='8' rx='1' fill='%23D07A1F'/%3E%3Crect x='7' y='5' width='4' height='12' rx='1' fill='%238549C6'/%3E%3Crect x='13' y='1' width='4' height='16' rx='1' fill='%2316878C'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Fallback for crawlers and readers without JavaScript; React replaces it on mount. -->
+    <div id="root">
+      <main>
+        <h1>algo-trading-bot</h1>
+        <p>
+          A rules-based ETF rotation strategy, implemented as a tested Python package with a
+          realistic backtester. Each day it reads two bond-market signals, picks one of three
+          portfolios, and holds it until the signals change: 3&times; leveraged equity funds when
+          bonds (AGG) beat cash (BIL) over 60 days, half UUP (US dollar) and half QID or TBF when
+          long bonds (TLT) trail cash over 20 days, and an equal split of UGL, TMF, BTAL and XLP otherwise.
+          This console shows every decision, run and backtest. Paper trading only; nothing here
+          is investment advice.
+        </p>
+        <p>
+          Every weekday at 09:35 New York time a GitHub Actions job decides on the latest
+          completed day and trades the difference on an Alpaca paper account. The backtest and
+          the live runner call the same pure strategy function, which returns target weights
+          plus the reasoning behind them, so live and backtest decisions on the same day match.
+          Client order IDs are built from the day, fund and side, so a rerun cannot trade twice.
+        </p>
+        <p>
+          Backtested daily from January 2013 to October 2026 at 5 bps per dollar traded, with
+          2023 onward held out as an out-of-sample test fixed before any backtest ran. The
+          Sharpe ratio falls from 1.15 in 2013&ndash;2022 to 0.39 in 2023&ndash;2026, well below
+          holding SPY (1.12) over the holdout: the in-sample result does not hold up.
+        </p>
+        <p>
+          Stack: Python 3.12, uv, FastAPI and pydantic, Alpaca, Yahoo Finance with a Parquet
+          cache, React, TypeScript and Vite, GitHub Actions and GitHub Pages.
+        </p>
+        <ul>
+          <li><a href="https://github.com/Sri-Ln/algo_trading">Source on GitHub</a></li>
+          <li><a href="https://srikanthsharma.me">Srikanth Lakshminarayan</a></li>
+        </ul>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
