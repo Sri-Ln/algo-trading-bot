@@ -1,0 +1,130 @@
+{
+  "account": {
+    "cash": 1027.83,
+    "equity": 105576.09
+  },
+  "api_calls": [
+    {
+      "at": "2026-10-22T18:08:45.408462+00:00",
+      "elapsed_ms": 34.68448600000329,
+      "method": "GET",
+      "path": "/v2/clock",
+      "status": 200
+    },
+    {
+      "at": "2026-10-22T18:08:49.875442+00:00",
+      "elapsed_ms": 53.995636999999874,
+      "method": "GET",
+      "path": "/v2/account",
+      "status": 200
+    },
+    {
+      "at": "2026-10-22T18:08:49.884793+00:00",
+      "elapsed_ms": 8.910347000004037,
+      "method": "GET",
+      "path": "/v2/positions",
+      "status": 200
+    }
+  ],
+  "decision": {
+    "checks": [
+      {
+        "gap": -0.025126341954107567,
+        "left": "AGG",
+        "left_return": -0.016501165798305073,
+        "lookback": 60,
+        "passed": false,
+        "right": "BIL",
+        "right_return": 0.008625176155802494,
+        "rule": 1
+      },
+      {
+        "gap": -0.0017054864063899,
+        "left": "TLT",
+        "left_return": 0.0012822088570472179,
+        "lookback": 20,
+        "passed": true,
+        "right": "BIL",
+        "right_return": 0.002987695263437118,
+        "rule": 2
+      }
+    ],
+    "date": "2026-10-21",
+    "regime": "risk_off_rising",
+    "rsi": {
+      "QID": 51.61598783948089,
+      "TBF": 48.53299827134642
+    },
+    "weights": {
+      "TBF": 0.5,
+      "UUP": 0.5
+    }
+  },
+  "dry_run": false,
+  "error": null,
+  "finished_at": "2026-10-22T18:08:49.885575+00:00",
+  "orders": [],
+  "positions": {
+    "TBF": {
+      "market_value": 51862.02,
+      "qty": 2037.0
+    },
+    "UUP": {
+      "market_value": 52686.24,
+      "qty": 1824.0
+    }
+  },
+  "started_at": "2026-10-22T18:08:45.373349+00:00",
+  "status": "ok",
+  "steps": [
+    {
+      "detail": {
+        "is_open": true,
+        "next_open": "2026-10-23T09:30:00-04:00"
+      },
+      "ms": 35.31227899999578,
+      "name": "check_clock",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "attempts": 1,
+        "last_bar": "2026-10-21",
+        "tickers": 15
+      },
+      "ms": 4411.552476000004,
+      "name": "fetch_bars",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "regime": "risk_off_rising",
+        "weights": {
+          "TBF": 0.5,
+          "UUP": 0.5
+        }
+      },
+      "ms": 0.7459149999959891,
+      "name": "decide",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "drift": 0.009735442939779293,
+        "orders_needed": 0
+      },
+      "ms": 64.43214899999816,
+      "name": "reconcile",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "reason": "in sync"
+      },
+      "ms": 0.0019940000015594705,
+      "name": "submit_orders",
+      "status": "skipped"
+    }
+  ],
+  "trading_day": "2026-10-22"
+}
