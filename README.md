@@ -24,9 +24,9 @@ one that holds sets the portfolio:
 
 The idea: bonds falling behind cash is an early sign of rising rates, which tends to
 hurt stocks. The rules come from a public
-[Composer strategy](https://app.composer.trade/symphony/xDsLkk2PAlXio3qTs1KY/details),
-also traded by [jononon/algo-trading-schwab](https://github.com/jononon/algo-trading-schwab).
-This repository reimplements and evaluates them independently.
+[Composer strategy](https://app.composer.trade/symphony/xDsLkk2PAlXio3qTs1KY/details).
+This repository reimplements them, tests them on years they were not designed on, and
+trades them on a paper account.
 
 ## Backtest results
 
@@ -103,11 +103,16 @@ matches a full re-run.
   day therefore match exactly.
 - **Swappable data.** Prices come through a `MarketData` port. The Yahoo Finance adapter
   is wrapped in a Parquet cache so backtests run offline.
-- **Live runs as reconciliation.** Every weekday at 09:35 New York time a GitHub Actions
-  job checks the broker's clock, decides on the latest completed day, compares the target
-  with the account's holdings, and sends whole-share orders for the difference. Client
-  order IDs make retries safe. Each run's steps, timings, orders and API calls are
-  committed as JSON under `data/live/`.
+- **Live runs as reconciliation.** A GitHub Actions job is scheduled for 09:35 New York
+  time every weekday. It checks the broker's clock, decides on the latest completed day,
+  compares the target with the account's holdings, and sends whole-share orders for the
+  difference. Client order IDs make retries safe. Each run's steps, timings, orders and
+  API calls are committed as JSON under `data/live/`.
+- **Scheduled runs start late.** GitHub treats schedules as best effort, and in practice
+  the job usually starts in the afternoon, hours after 09:35. Live orders therefore fill
+  mid-session rather than at the open the backtest assumes. When a run starts after the
+  close, it sees the market is closed and skips the day; the run record shows the actual
+  start time.
 - **A static API with a typed contract.** The console's API is defined in FastAPI with
   pydantic response models. At build time every route is requested once and saved as a
   JSON file at the same path, so GitHub Pages hosts it with no server. The React
