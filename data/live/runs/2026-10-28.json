@@ -1,0 +1,213 @@
+{
+  "account": {
+    "cash": 1003.46,
+    "equity": 104395.42
+  },
+  "api_calls": [
+    {
+      "at": "2026-10-28T19:03:44.595696+00:00",
+      "elapsed_ms": 25.637884999994753,
+      "method": "GET",
+      "path": "/v2/clock",
+      "status": 200
+    },
+    {
+      "at": "2026-10-28T19:03:48.079610+00:00",
+      "elapsed_ms": 57.98386400000766,
+      "method": "GET",
+      "path": "/v2/account",
+      "status": 200
+    },
+    {
+      "at": "2026-10-28T19:03:48.094063+00:00",
+      "elapsed_ms": 14.06708500000775,
+      "method": "GET",
+      "path": "/v2/positions",
+      "status": 200
+    },
+    {
+      "at": "2026-10-28T19:03:48.119577+00:00",
+      "elapsed_ms": 24.566070999995304,
+      "method": "POST",
+      "path": "/v2/orders",
+      "status": 200
+    },
+    {
+      "at": "2026-10-28T19:03:48.129753+00:00",
+      "elapsed_ms": 9.89270600000225,
+      "method": "POST",
+      "path": "/v2/orders",
+      "status": 200
+    },
+    {
+      "at": "2026-10-28T19:03:50.139700+00:00",
+      "elapsed_ms": 9.408049999990453,
+      "method": "GET",
+      "path": "/v2/orders/fbc5d949-9990-40a6-a8f0-c74a7179aeec",
+      "status": 200
+    },
+    {
+      "at": "2026-10-28T19:03:52.150919+00:00",
+      "elapsed_ms": 10.640201999990495,
+      "method": "GET",
+      "path": "/v2/orders/1dc957f7-ec08-4aaf-b5e3-e84d1183aa69",
+      "status": 200
+    },
+    {
+      "at": "2026-10-28T19:03:52.170096+00:00",
+      "elapsed_ms": 18.74875299999701,
+      "method": "POST",
+      "path": "/v2/orders",
+      "status": 200
+    },
+    {
+      "at": "2026-10-28T19:03:54.178460+00:00",
+      "elapsed_ms": 7.830800000007798,
+      "method": "GET",
+      "path": "/v2/orders/58ba95d4-4a58-43d2-ad2a-fbcfee8dab1d",
+      "status": 200
+    }
+  ],
+  "decision": {
+    "checks": [
+      {
+        "gap": -0.013676934939800933,
+        "left": "AGG",
+        "left_return": -0.005084888488719352,
+        "lookback": 60,
+        "passed": false,
+        "right": "BIL",
+        "right_return": 0.00859204645108158,
+        "rule": 1
+      },
+      {
+        "gap": 0.044676434937184206,
+        "left": "TLT",
+        "left_return": 0.04766401060960579,
+        "lookback": 20,
+        "passed": false,
+        "right": "BIL",
+        "right_return": 0.002987575672421583,
+        "rule": 2
+      }
+    ],
+    "date": "2026-10-27",
+    "regime": "risk_off_falling",
+    "rsi": {},
+    "weights": {
+      "BTAL": 0.25,
+      "TMF": 0.25,
+      "UGL": 0.25,
+      "XLP": 0.25
+    }
+  },
+  "dry_run": false,
+  "error": null,
+  "finished_at": "2026-10-28T19:03:54.178958+00:00",
+  "orders": [
+    {
+      "client_order_id": "at-2026-10-28-TMF-sell",
+      "filled_avg_price": 28.9,
+      "filled_qty": 21,
+      "order_id": "fbc5d949-9990-40a6-a8f0-c74a7179aeec",
+      "qty": 21,
+      "side": "sell",
+      "status": "filled",
+      "symbol": "TMF"
+    },
+    {
+      "client_order_id": "at-2026-10-28-UGL-sell",
+      "filled_avg_price": 42.821428,
+      "filled_qty": 28,
+      "order_id": "1dc957f7-ec08-4aaf-b5e3-e84d1183aa69",
+      "qty": 28,
+      "side": "sell",
+      "status": "filled",
+      "symbol": "UGL"
+    },
+    {
+      "client_order_id": "at-2026-10-28-BTAL-buy",
+      "filled_avg_price": 12.81,
+      "filled_qty": 20,
+      "order_id": "58ba95d4-4a58-43d2-ad2a-fbcfee8dab1d",
+      "qty": 20,
+      "side": "buy",
+      "status": "filled",
+      "symbol": "BTAL"
+    }
+  ],
+  "positions": {
+    "BTAL": {
+      "market_value": 25225.8435,
+      "qty": 1969.0
+    },
+    "TMF": {
+      "market_value": 25778.8,
+      "qty": 892.0
+    },
+    "UGL": {
+      "market_value": 26719.68,
+      "qty": 624.0
+    },
+    "XLP": {
+      "market_value": 25667.64,
+      "qty": 296.0
+    }
+  },
+  "started_at": "2026-10-28T19:03:44.569656+00:00",
+  "status": "ok",
+  "steps": [
+    {
+      "detail": {
+        "is_open": true,
+        "next_open": "2026-10-29T09:30:00-04:00"
+      },
+      "ms": 26.243837999999187,
+      "name": "check_clock",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "attempts": 1,
+        "last_bar": "2026-10-27",
+        "tickers": 15
+      },
+      "ms": 3425.1176679999985,
+      "name": "fetch_bars",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "regime": "risk_off_falling",
+        "weights": {
+          "BTAL": 0.25,
+          "TMF": 0.25,
+          "UGL": 0.25,
+          "XLP": 0.25
+        }
+      },
+      "ms": 0.2875579999965794,
+      "name": "decide",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "drift": 0.021505794986025256,
+        "orders_needed": 3
+      },
+      "ms": 73.4629990000002,
+      "name": "reconcile",
+      "status": "ok"
+    },
+    {
+      "detail": {
+        "filled": 3,
+        "placed": 3
+      },
+      "ms": 6084.021304999993,
+      "name": "submit_orders",
+      "status": "ok"
+    }
+  ],
+  "trading_day": "2026-10-28"
+}
