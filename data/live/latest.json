@@ -1,251 +1,32 @@
 {
-  "account": {
-    "cash": 2644.77,
-    "equity": 106354.33
-  },
+  "account": null,
   "api_calls": [
     {
-      "at": "2026-11-10T20:59:10.296905+00:00",
-      "elapsed_ms": 287.5197589999985,
+      "at": "2026-11-11T21:30:50.590563+00:00",
+      "elapsed_ms": 699.4593289999998,
       "method": "GET",
       "path": "/v2/clock",
       "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:14.005243+00:00",
-      "elapsed_ms": 43.262464000001444,
-      "method": "GET",
-      "path": "/v2/account",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:14.018910+00:00",
-      "elapsed_ms": 13.237628999998918,
-      "method": "GET",
-      "path": "/v2/positions",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:14.044248+00:00",
-      "elapsed_ms": 24.384943999997688,
-      "method": "POST",
-      "path": "/v2/orders",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:14.056474+00:00",
-      "elapsed_ms": 11.825792999999862,
-      "method": "POST",
-      "path": "/v2/orders",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:14.070168+00:00",
-      "elapsed_ms": 13.433916000000323,
-      "method": "POST",
-      "path": "/v2/orders",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:16.082694+00:00",
-      "elapsed_ms": 12.008598999997844,
-      "method": "GET",
-      "path": "/v2/orders/1d84473a-bb5b-4d86-a1e9-b902551be244",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:18.095829+00:00",
-      "elapsed_ms": 12.508556999996756,
-      "method": "GET",
-      "path": "/v2/orders/1d84473a-bb5b-4d86-a1e9-b902551be244",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:20.112239+00:00",
-      "elapsed_ms": 15.885024999995778,
-      "method": "GET",
-      "path": "/v2/orders/1d84473a-bb5b-4d86-a1e9-b902551be244",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:22.123946+00:00",
-      "elapsed_ms": 10.930792000003464,
-      "method": "GET",
-      "path": "/v2/orders/69e95e40-3a66-4a14-a34c-7aa6502bb138",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:24.141397+00:00",
-      "elapsed_ms": 16.903587000001608,
-      "method": "GET",
-      "path": "/v2/orders/1e7242c4-23c6-4989-95d1-8ceac1595f78",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:24.153981+00:00",
-      "elapsed_ms": 12.239384999993774,
-      "method": "POST",
-      "path": "/v2/orders",
-      "status": 200
-    },
-    {
-      "at": "2026-11-10T20:59:26.167548+00:00",
-      "elapsed_ms": 13.00647700000468,
-      "method": "GET",
-      "path": "/v2/orders/a17b89bf-7daa-44e6-b8b5-8fed69185470",
-      "status": 200
     }
   ],
-  "decision": {
-    "checks": [
-      {
-        "gap": -0.007669879667019375,
-        "left": "AGG",
-        "left_return": -0.002268257486593539,
-        "lookback": 60,
-        "passed": false,
-        "right": "BIL",
-        "right_return": 0.005401622180425836,
-        "rule": 1
-      },
-      {
-        "gap": 0.05031458200692851,
-        "left": "TLT",
-        "left_return": 0.050096039459754715,
-        "lookback": 20,
-        "passed": false,
-        "right": "BIL",
-        "right_return": -0.0002185425471737945,
-        "rule": 2
-      }
-    ],
-    "date": "2026-11-09",
-    "regime": "risk_off_falling",
-    "rsi": {},
-    "weights": {
-      "BTAL": 0.25,
-      "TMF": 0.25,
-      "UGL": 0.25,
-      "XLP": 0.25
-    }
-  },
+  "decision": null,
   "dry_run": false,
   "error": null,
-  "finished_at": "2026-11-10T20:59:26.167885+00:00",
-  "orders": [
-    {
-      "client_order_id": "at-2026-11-10-TMF-sell",
-      "filled_avg_price": 29.042727,
-      "filled_qty": 11,
-      "order_id": "1d84473a-bb5b-4d86-a1e9-b902551be244",
-      "qty": 11,
-      "side": "sell",
-      "status": "filled",
-      "symbol": "TMF"
-    },
-    {
-      "client_order_id": "at-2026-11-10-UGL-sell",
-      "filled_avg_price": 42.42,
-      "filled_qty": 20,
-      "order_id": "69e95e40-3a66-4a14-a34c-7aa6502bb138",
-      "qty": 20,
-      "side": "sell",
-      "status": "filled",
-      "symbol": "UGL"
-    },
-    {
-      "client_order_id": "at-2026-11-10-XLP-sell",
-      "filled_avg_price": 91.04,
-      "filled_qty": 3,
-      "order_id": "1e7242c4-23c6-4989-95d1-8ceac1595f78",
-      "qty": 3,
-      "side": "sell",
-      "status": "filled",
-      "symbol": "XLP"
-    },
-    {
-      "client_order_id": "at-2026-11-10-BTAL-buy",
-      "filled_avg_price": 13.16,
-      "filled_qty": 66,
-      "order_id": "a17b89bf-7daa-44e6-b8b5-8fed69185470",
-      "qty": 66,
-      "side": "buy",
-      "status": "filled",
-      "symbol": "BTAL"
-    }
-  ],
-  "positions": {
-    "BTAL": {
-      "market_value": 25783.8,
-      "qty": 1960.0
-    },
-    "TMF": {
-      "market_value": 25588.645,
-      "qty": 881.0
-    },
-    "UGL": {
-      "market_value": 25751.975,
-      "qty": 607.0
-    },
-    "XLP": {
-      "market_value": 26585.14,
-      "qty": 292.0
-    }
-  },
-  "started_at": "2026-11-10T20:59:10.009007+00:00",
-  "status": "ok",
+  "finished_at": "2026-11-11T21:30:50.590791+00:00",
+  "orders": [],
+  "positions": {},
+  "started_at": "2026-11-11T21:30:49.890777+00:00",
+  "status": "skipped",
   "steps": [
     {
       "detail": {
-        "is_open": true,
-        "next_open": "2026-11-11T09:30:00-05:00"
+        "is_open": false,
+        "next_open": "2026-11-12T09:30:00-05:00"
       },
-      "ms": 288.1230869999989,
+      "ms": 699.9767460000008,
       "name": "check_clock",
-      "status": "ok"
-    },
-    {
-      "detail": {
-        "attempts": 1,
-        "last_bar": "2026-11-09",
-        "tickers": 15
-      },
-      "ms": 3664.2181660000015,
-      "name": "fetch_bars",
-      "status": "ok"
-    },
-    {
-      "detail": {
-        "regime": "risk_off_falling",
-        "weights": {
-          "BTAL": 0.25,
-          "TMF": 0.25,
-          "UGL": 0.25,
-          "XLP": 0.25
-        }
-      },
-      "ms": 0.24892300000090017,
-      "name": "decide",
-      "status": "ok"
-    },
-    {
-      "detail": {
-        "drift": 0.024867534777380518,
-        "orders_needed": 4
-      },
-      "ms": 57.99263499999796,
-      "name": "reconcile",
-      "status": "ok"
-    },
-    {
-      "detail": {
-        "filled": 4,
-        "placed": 4
-      },
-      "ms": 12148.088751,
-      "name": "submit_orders",
-      "status": "ok"
+      "status": "skipped"
     }
   ],
-  "trading_day": "2026-11-10"
+  "trading_day": "2026-11-11"
 }
