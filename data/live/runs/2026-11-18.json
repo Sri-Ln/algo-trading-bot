@@ -1,0 +1,32 @@
+{
+  "account": null,
+  "api_calls": [
+    {
+      "at": "2026-11-18T22:17:10.001248+00:00",
+      "elapsed_ms": 213.9071759999993,
+      "method": "GET",
+      "path": "/v2/clock",
+      "status": 200
+    }
+  ],
+  "decision": null,
+  "dry_run": false,
+  "error": null,
+  "finished_at": "2026-11-18T22:17:10.001466+00:00",
+  "orders": [],
+  "positions": {},
+  "started_at": "2026-11-18T22:17:09.787113+00:00",
+  "status": "skipped",
+  "steps": [
+    {
+      "detail": {
+        "is_open": false,
+        "next_open": "2026-11-19T09:30:00-05:00"
+      },
+      "ms": 214.3147510000034,
+      "name": "check_clock",
+      "status": "skipped"
+    }
+  ],
+  "trading_day": "2026-11-18"
+}
